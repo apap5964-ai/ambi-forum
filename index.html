@@ -7,34 +7,26 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;cursor:none!important}body{background:#0a0a0f;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;cursor:none!important}body.custom-cursor-disabled,body.custom-cursor-disabled *{cursor:auto!important}::-webkit-scrollbar{width:0;background:0 0}
-        /* Кастомный курсор */
         .custom-cursor{position:fixed;width:32px;height:32px;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);will-change:left,top;filter:drop-shadow(0 0 8px rgba(106,78,255,.8))}.cursor-arrow{position:absolute;width:0;height:0;border-left:12px solid #6a4eff;border-top:8px solid transparent;border-bottom:8px solid transparent;top:2px;left:2px;filter:drop-shadow(0 0 4px #6a4eff)}.cursor-glow{position:absolute;width:40px;height:40px;border-radius:50%;background:radial-gradient(circle,rgba(106,78,255,.4),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:glowPulse 2s infinite}@keyframes glowPulse{0%,100%{opacity:.6;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}}body.custom-cursor-disabled .custom-cursor{display:none}
-        /* Фон */
         .gradient-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 20% 50%,rgba(106,78,255,.15),transparent 50%),radial-gradient(circle at 80% 80%,rgba(168,85,247,.15),transparent 50%),radial-gradient(circle at 40% 20%,rgba(236,72,153,.1),transparent 50%);z-index:0;pointer-events:none}.neon-ball{position:fixed;border-radius:50%;filter:blur(60px);pointer-events:none;z-index:0;animation:float 15s infinite ease-in-out}@keyframes float{0%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(40px,-40px) scale(1.1)}66%{transform:translate(-30px,30px) scale(.9)}}.particle{position:fixed;width:4px;height:4px;background:linear-gradient(135deg,#6a4eff,#a855f7);border-radius:50%;pointer-events:none;z-index:0;animation:particleFloat 6s infinite linear;box-shadow:0 0 15px #6a4eff}@keyframes particleFloat{0%{transform:translateY(100vh) scale(0);opacity:0}20%{opacity:1}80%{opacity:1}100%{transform:translateY(-20vh) scale(1);opacity:0}}.star{position:fixed;width:2px;height:2px;background:#fff;border-radius:50%;opacity:0;animation:twinkle 4s infinite;pointer-events:none}@keyframes twinkle{0%,100%{opacity:0;transform:scale(1)}50%{opacity:.9;transform:scale(1.8)}}
-        /* Выдвижное меню */
         .side-menu{position:fixed;left:0;top:0;height:100vh;width:300px;background:rgba(10,10,20,.95);backdrop-filter:blur(15px);border-right:1px solid rgba(106,78,255,.3);transform:translateX(-100%);transition:transform .4s cubic-bezier(.16,1,.3,1);z-index:1000;padding:30px 20px;overflow-y:auto;box-shadow:5px 0 30px rgba(0,0,0,.5)}.side-menu.active{transform:translateX(0)}.menu-trigger{position:fixed;left:0;top:0;width:20px;height:100vh;z-index:999}.logo{font-size:2rem;font-weight:900;background:linear-gradient(135deg,#6a4eff,#a855f7,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:30px;text-align:center}.nav-item{padding:14px 18px;border-radius:12px;margin-bottom:8px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:12px;color:rgba(255,255,255,.7)}.nav-item:hover,.nav-item.active{background:rgba(106,78,255,.15);color:#fff;border-left:3px solid #6a4eff}.nav-section{margin-top:25px}.nav-section-title{font-size:.8rem;text-transform:uppercase;opacity:.5;margin-bottom:10px;padding-left:18px}.search-box{margin:20px 0}.search-box input{width:100%;padding:14px 18px;background:rgba(20,20,40,.8);border:1px solid rgba(106,78,255,.4);border-radius:40px;color:#fff;outline:0}
-        /* Основной контент */
         .main-content{padding:25px 30px;max-width:1200px;margin:0 auto;position:relative;z-index:2}.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}.page-title{font-size:2rem;font-weight:700;background:linear-gradient(135deg,#fff,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent}.menu-btn{background:rgba(20,20,35,.8);backdrop-filter:blur(5px);border:1px solid rgba(106,78,255,.3);padding:12px 20px;border-radius:40px;cursor:pointer;font-size:1.5rem}
         .profile-dropdown{position:relative}.profile-btn{display:flex;align-items:center;gap:12px;background:rgba(20,20,35,.8);backdrop-filter:blur(5px);border:1px solid rgba(106,78,255,.3);padding:8px 16px;border-radius:40px;cursor:pointer;transition:.2s}.profile-btn:hover{border-color:#6a4eff;box-shadow:0 0 15px rgba(106,78,255,.3)}.profile-btn img{width:36px;height:36px;border-radius:50%;border:2px solid #6a4eff}.profile-btn span{font-weight:600}.dropdown-panel{position:absolute;top:calc(100% + 10px);right:0;width:260px;background:rgba(10,10,20,.95);backdrop-filter:blur(15px);border-radius:20px;padding:15px;border:1px solid rgba(106,78,255,.3);display:none;opacity:0;transform:scale(.9) translateY(-10px);transition:all .2s;z-index:100}.dropdown-panel.active{display:block;opacity:1;transform:scale(1) translateY(0)}.dropdown-panel .menu-item{padding:12px 15px;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:.2s}.dropdown-panel .menu-item:hover{background:rgba(106,78,255,.2)}.dropdown-panel hr{margin:10px 0;border-color:rgba(106,78,255,.2)}
-        /* Карточки тем */
         .forum-grid{display:grid;grid-template-columns:1fr 320px;gap:25px}.topics-area{background:rgba(20,20,40,.5);backdrop-filter:blur(5px);border-radius:24px;padding:20px;border:1px solid rgba(106,78,255,.2)}.section-header{display:flex;justify-content:space-between;margin-bottom:20px}.topic-card{background:rgba(10,10,20,.6);border-radius:16px;padding:18px;margin-bottom:12px;border:1px solid rgba(106,78,255,.2);cursor:pointer;transition:.2s}.topic-card:hover{border-color:#6a4eff;transform:translateY(-2px)}.topic-title{font-size:1.2rem;font-weight:700;color:#a855f7}.topic-meta{display:flex;gap:20px;font-size:.8rem;opacity:.7}.topic-author{display:flex;align-items:center;gap:8px}.topic-author img{width:20px;height:20px;border-radius:50%}.right-sidebar{background:rgba(20,20,40,.3);backdrop-filter:blur(5px);border-radius:20px;padding:20px;border:1px solid rgba(106,78,255,.2)}.right-sidebar h3{margin-bottom:15px;color:#a855f7}.recent-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(106,78,255,.1);cursor:pointer}
-        /* Модальные окна */
         .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);z-index:1001;display:none;align-items:center;justify-content:center}.modal.active{display:flex}.modal-card{background:rgba(20,20,40,.9);backdrop-filter:blur(15px);border-radius:30px;padding:30px;width:90%;max-width:800px;max-height:85vh;overflow-y:auto}.modal-header{display:flex;justify-content:space-between;margin-bottom:20px}.close-btn{font-size:24px;cursor:pointer}
         .input-group{margin-bottom:20px}.input-group input,.input-group textarea{width:100%;padding:14px;background:rgba(10,10,20,.6);border:1px solid rgba(106,78,255,.3);border-radius:16px;color:#fff;outline:0}.submit-btn{background:linear-gradient(135deg,#6a4eff,#a855f7);padding:14px;border:none;border-radius:30px;color:#fff;font-weight:700;width:100%;cursor:pointer}
-        /* Рамки достижений и ролей */
-        .avatar-frame{position:relative;display:inline-block}.avatar-frame img{border-radius:50%;object-fit:cover}.frame-badge{position:absolute;bottom:-2px;right:-2px;font-size:1.2rem;filter:drop-shadow(0 0 5px #000)} 
-        .frame-gold{box-shadow:0 0 0 3px gold,0 0 20px gold;animation:goldPulse 2s infinite}@keyframes goldPulse{0%,100%{box-shadow:0 0 0 3px gold,0 0 20px gold}50%{box-shadow:0 0 0 5px #ffd700,0 0 30px orange}}
-        .frame-diamond{box-shadow:0 0 0 3px #b9f2ff,0 0 20px #00ffff;animation:diamondPulse 2s infinite}@keyframes diamondPulse{0%,100%{box-shadow:0 0 0 3px #b9f2ff,0 0 20px #00ffff}50%{box-shadow:0 0 0 5px #e0ffff,0 0 30px #00bfff}}
-        .frame-moderator{box-shadow:0 0 0 3px #6a4eff,0 0 20px #a855f7;animation:modPulse 2s infinite}@keyframes modPulse{0%,100%{box-shadow:0 0 0 3px #6a4eff,0 0 20px #a855f7}50%{box-shadow:0 0 0 5px #8b5cf6,0 0 30px #c084fc}}
-        .frame-admin{box-shadow:0 0 0 3px #f97316,0 0 20px #fbbf24;animation:adminPulse 1.5s infinite}@keyframes adminPulse{0%,100%{box-shadow:0 0 0 3px #f97316,0 0 20px #fbbf24}50%{box-shadow:0 0 0 5px #ef4444,0 0 30px #fde047}}
-        /* Посты админов/модеров */
+        .avatar-frame{display:inline-block;border-radius:50%}.avatar-frame img{border-radius:50%;object-fit:cover;display:block}
+        .frame-gold{box-shadow:0 0 0 3px gold,0 0 20px gold;border-radius:50%;animation:goldPulse 2s infinite}@keyframes goldPulse{0%,100%{box-shadow:0 0 0 3px gold,0 0 20px gold}50%{box-shadow:0 0 0 5px #ffd700,0 0 30px orange}}
+        .frame-diamond{box-shadow:0 0 0 3px #b9f2ff,0 0 20px #00ffff;border-radius:50%;animation:diamondPulse 2s infinite}@keyframes diamondPulse{0%,100%{box-shadow:0 0 0 3px #b9f2ff,0 0 20px #00ffff}50%{box-shadow:0 0 0 5px #e0ffff,0 0 30px #00bfff}}
+        .frame-moderator{box-shadow:0 0 0 3px #6a4eff,0 0 20px #a855f7;border-radius:50%;animation:modPulse 2s infinite}@keyframes modPulse{0%,100%{box-shadow:0 0 0 3px #6a4eff,0 0 20px #a855f7}50%{box-shadow:0 0 0 5px #8b5cf6,0 0 30px #c084fc}}
+        .frame-admin{box-shadow:0 0 0 3px #f97316,0 0 20px #fbbf24;border-radius:50%;animation:adminPulse 1.5s infinite}@keyframes adminPulse{0%,100%{box-shadow:0 0 0 3px #f97316,0 0 20px #fbbf24}50%{box-shadow:0 0 0 5px #ef4444,0 0 30px #fde047}}
         .post-admin{border-left:4px solid #f97316;background:linear-gradient(90deg,rgba(249,115,22,.1),transparent)}.post-moderator{border-left:4px solid #6a4eff;background:linear-gradient(90deg,rgba(106,78,255,.1),transparent)}
         .verified-badge{font-size:1.2rem;margin-left:5px}
-        /* Редактор постов */
-        .editor-toolbar{display:flex;gap:5px;margin-bottom:10px;flex-wrap:wrap}.editor-toolbar button{background:rgba(20,20,40,.8);border:1px solid rgba(106,78,255,.3);color:#fff;padding:8px 12px;border-radius:8px;cursor:pointer}.editor-toolbar button:hover{background:#6a4eff}
-        .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#6a4eff,#a855f7);padding:10px 20px;border-radius:50px;z-index:9999;animation:toastFade 2s ease-out}
-        @keyframes toastFade{0%{opacity:0;transform:translateX(-50%) translateY(20px)}20%{opacity:1}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+        .file-attachment{display:flex;align-items:center;gap:15px;padding:12px 15px;background:rgba(20,20,40,.5);border-radius:16px;border:1px solid rgba(106,78,255,.2);margin:8px 0;transition:.2s}.file-attachment:hover{background:rgba(30,30,60,.7);border-color:#6a4eff}.file-icon{font-size:2rem;min-width:40px;text-align:center}.file-info{flex:1}.file-name{font-weight:600;color:#a855f7;text-decoration:none;font-size:1rem}.file-name:hover{text-decoration:underline}.file-meta{display:flex;gap:15px;font-size:.8rem;opacity:.7;margin-top:3px}
+        .achievement-card{background:rgba(20,20,40,.5);border-radius:16px;padding:15px;margin-bottom:10px;border:1px solid rgba(106,78,255,.2);display:flex;align-items:center;gap:15px}.achievement-icon{font-size:2rem;min-width:50px;text-align:center}.achievement-info{flex:1}.achievement-title{font-weight:700;margin-bottom:5px}.achievement-desc{font-size:.85rem;opacity:.8;margin-bottom:8px}.progress-bar{height:6px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}.progress-fill{height:100%;background:linear-gradient(90deg,#6a4eff,#a855f7);border-radius:3px}.locked{opacity:.5;filter:grayscale(.5);position:relative}.locked .achievement-icon::after{content:'🔒';position:absolute;font-size:1.5rem;margin-left:-10px}
         .online-dot{width:10px;height:10px;background:#10b981;border-radius:50%;display:inline-block;margin-left:5px;box-shadow:0 0 10px #10b981}
+        .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#6a4eff,#a855f7);padding:12px 24px;border-radius:50px;z-index:9999;animation:toastFade 3s ease-out;box-shadow:0 0 30px rgba(106,78,255,.5)}
+        @keyframes toastFade{0%{opacity:0;transform:translateX(-50%) translateY(20px)}20%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
     </style>
 </head>
 <body>
@@ -47,7 +39,6 @@
     <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Поиск тем..."></div>
     <div class="nav-item active" data-page="home"><i>🏠</i> Главная</div>
     <div class="nav-item" data-page="profile"><i>👤</i> Профиль</div>
-    <div class="nav-item" data-page="settings"><i>⚙️</i> Настройки</div>
     <div class="nav-item" data-page="moderation" id="modTab" style="display:none"><i>🛡️</i> Модерация</div>
     <div class="nav-item" data-page="users" id="adminTab" style="display:none"><i>👥</i> Пользователи</div>
     <div class="nav-section"><div class="nav-section-title">Сообщество</div><div class="nav-item" data-page="new"><i>➕</i> Новая тема</div></div>
@@ -62,7 +53,7 @@
                 <div id="guestDropdown"><div class="menu-item" id="menuLogin">🔑 Войти</div><div class="menu-item" id="menuRegister">📝 Регистрация</div></div>
                 <div id="userDropdown" style="display:none">
                     <div style="display:flex;align-items:center;gap:12px;padding:10px"><img id="dropdownAvatar" src="https://ui-avatars.com/api/?name=User&background=6a4eff&color=fff" style="width:40px;height:40px;border-radius:50%"><div><strong id="dropdownName"></strong><span id="modBadgeDropdown" class="badge-moderator" style="display:none">🛡️</span><span id="adminBadgeDropdown" class="badge-admin" style="display:none">👑</span><br><span id="dropdownEmail" style="opacity:.7;font-size:.9rem"></span></div></div><hr>
-                    <div class="menu-item" id="menuProfile">👤 Профиль</div><div class="menu-item" id="menuSettings">⚙️ Настройки</div><div class="menu-item" id="menuChangeAvatar">📷 Сменить аватар</div><hr><div class="menu-item" id="menuLogout">🚪 Выйти</div>
+                    <div class="menu-item" id="menuProfile">👤 Профиль</div><div class="menu-item" id="menuChangeAvatar">📷 Сменить аватар</div><hr><div class="menu-item" id="menuLogout">🚪 Выйти</div>
                 </div>
             </div>
         </div>
@@ -72,18 +63,8 @@
 
 <!-- Модалки -->
 <div class="modal" id="authModal"><div class="modal-card"><div class="modal-header"><h3>Вход</h3><span class="close-btn" id="closeAuthModal">&times;</span></div><div style="display:flex;gap:10px;margin-bottom:20px"><button class="submit-btn" id="loginTabBtn">LOGIN</button><button class="submit-btn" id="registerTabBtn" style="background:rgba(106,78,255,.2)">REGISTER</button></div><form id="loginForm"><div class="input-group"><input type="email" id="loginEmail" placeholder="Email"></div><div class="input-group"><input type="password" id="loginPassword" placeholder="Пароль"></div><button class="submit-btn">Войти</button></form><form id="registerForm" style="display:none"><div class="input-group"><input type="text" id="regUsername" placeholder="Имя"></div><div class="input-group"><input type="email" id="regEmail" placeholder="Email"></div><div class="input-group"><input type="password" id="regPassword" placeholder="Пароль"></div><div class="input-group"><input type="password" id="regConfirm" placeholder="Подтверждение"></div><button class="submit-btn">Зарегистрироваться</button></form></div></div>
-<div class="modal" id="newTopicModal"><div class="modal-card"><div class="modal-header"><h3>📝 Новая тема</h3><span class="close-btn" id="closeNewTopicModal">&times;</span></div><div class="input-group"><input type="text" id="topicTitle" placeholder="Заголовок"></div>
-    <div class="editor-toolbar">
-        <button type="button" id="insertImageBtn">🖼️ Вставить картинку</button>
-        <button type="button" id="attachFileBtn">📎 Прикрепить файл</button>
-    </div>
-    <div class="input-group"><textarea id="topicContent" placeholder="Текст (можно перетаскивать файлы)" style="height:200px"></textarea></div>
-    <div id="filePreview"></div>
-    <input type="file" id="topicFileInput" multiple style="display:none">
-    <button class="submit-btn" id="createTopicBtn">Опубликовать</button>
-</div></div>
+<div class="modal" id="newTopicModal"><div class="modal-card"><div class="modal-header"><h3>📝 Новая тема</h3><span class="close-btn" id="closeNewTopicModal">&times;</span></div><div class="input-group"><input type="text" id="topicTitle" placeholder="Заголовок"></div><div class="editor-toolbar"><button type="button" id="insertImageBtn">🖼️ Вставить картинку</button><button type="button" id="attachFileBtn">📎 Прикрепить файл</button></div><div class="input-group"><textarea id="topicContent" placeholder="Текст" style="height:200px"></textarea></div><div id="filePreview"></div><input type="file" id="topicFileInput" multiple style="display:none"><button class="submit-btn" id="createTopicBtn">Опубликовать</button></div></div>
 <div class="modal" id="viewTopicModal"><div class="modal-card"><div class="modal-header"><h3 id="viewTopicTitle"></h3><span class="close-btn" id="closeViewTopicModal">&times;</span></div><div id="viewTopicContent"></div><div id="commentsSection" style="margin:20px 0"></div><div class="input-group"><textarea id="commentInput" placeholder="Комментарий..."></textarea></div><button class="submit-btn" id="addCommentBtn">Отправить</button></div></div>
-<div class="modal" id="settingsModal"><div class="modal-card"><div class="modal-header"><h3>⚙️ Настройки</h3><span class="close-btn" id="closeSettingsModal">&times;</span></div><div class="checkbox-group"><label><input type="checkbox" id="showOnline"> Показывать онлайн статус</label></div><div class="checkbox-group"><label><input type="checkbox" id="receiveEmails"> Получать новости</label></div><button class="submit-btn" id="saveSettingsBtn">Сохранить</button></div></div>
 <div class="modal" id="editPostModal"><div class="modal-card"><div class="modal-header"><h3>✏️ Редактировать</h3><span class="close-btn" id="closeEditPostModal">&times;</span></div><div class="input-group"><input type="text" id="editPostTitle"></div><div class="editor-toolbar"><button type="button" id="editInsertImageBtn">🖼️ Вставить</button><button type="button" id="editAttachFileBtn">📎 Файл</button></div><div class="input-group"><textarea id="editPostContent" style="height:200px"></textarea></div><div id="editFilePreview"></div><button class="submit-btn" id="saveEditPostBtn">Сохранить</button></div></div>
 <div class="modal" id="profileModal"><div class="modal-card" style="max-width:500px"><div class="modal-header"><h3 id="profileModalTitle"></h3><span class="close-btn" id="closeProfileModal">&times;</span></div><div id="profileModalContent"></div></div></div>
 <div class="modal" id="reportsModal"><div class="modal-card"><div class="modal-header"><h3>⚠️ Жалобы</h3><span class="close-btn" id="closeReportsModal">&times;</span></div><div id="reportsList"></div></div></div>
@@ -127,8 +108,18 @@ document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click'
 profileBtn.onclick=(e)=>{e.stopPropagation(); profileDropdown.classList.toggle('active');};
 document.addEventListener('click',(e)=>{if(!profileBtn.contains(e.target)) profileDropdown.classList.remove('active');});
 document.getElementById('menuProfile').onclick=()=>{currentPage='profile';renderPage('profile');profileDropdown.classList.remove('active');};
-document.getElementById('menuSettings').onclick=()=>{document.getElementById('settingsModal').classList.add('active');profileDropdown.classList.remove('active');};
 document.getElementById('menuLogout').onclick=async()=>{await auth.signOut();profileDropdown.classList.remove('active');};
+
+// Вход/Регистрация
+const authModal=document.getElementById('authModal'), loginForm=document.getElementById('loginForm'), registerForm=document.getElementById('registerForm');
+const loginTab=document.getElementById('loginTabBtn'), registerTab=document.getElementById('registerTabBtn');
+loginTab.onclick=()=>{loginForm.style.display='block';registerForm.style.display='none';loginTab.style.background='linear-gradient(135deg,#6a4eff,#a855f7)';registerTab.style.background='rgba(106,78,255,.2)';};
+registerTab.onclick=()=>{loginForm.style.display='none';registerForm.style.display='block';registerTab.style.background='linear-gradient(135deg,#6a4eff,#a855f7)';loginTab.style.background='rgba(106,78,255,.2)';};
+document.getElementById('menuLogin').onclick=()=>{authModal.classList.add('active');loginTab.click();profileDropdown.classList.remove('active');};
+document.getElementById('menuRegister').onclick=()=>{authModal.classList.add('active');registerTab.click();profileDropdown.classList.remove('active');};
+document.getElementById('closeAuthModal').onclick=()=>authModal.classList.remove('active');
+loginForm.onsubmit=async(e)=>{e.preventDefault(); try{await auth.signInWithEmailAndPassword(loginEmail.value,loginPassword.value);authModal.classList.remove('active');}catch(err){alert(err.message);}};
+registerForm.onsubmit=async(e)=>{e.preventDefault(); if(regPassword.value!==regConfirm.value){alert('Пароли не совпадают');return;} try{const cred=await auth.createUserWithEmailAndPassword(regEmail.value,regPassword.value);await cred.user.updateProfile({displayName:regUsername.value});await db.collection('users').doc(cred.user.uid).set({displayName:regUsername.value,email:regEmail.value,avatarBase64:''});authModal.classList.remove('active');}catch(err){alert(err.message);}};
 
 // Загрузка пользователя
 async function loadUserData(uid){
@@ -140,7 +131,6 @@ async function loadUserData(uid){
         isModerator=(data.role==='moderator'||isAdmin);
         modTab.style.display=isModerator?'flex':'none'; adminTab.style.display=isAdmin?'flex':'none';
         modBadgeDropdown.style.display=isModerator?'inline-block':'none'; adminBadgeDropdown.style.display=isAdmin?'inline-block':'none';
-        // Онлайн статус
         if(data.settings?.showOnline!==false) onlineUsers.add(uid);
     }else if(uid===ADMIN_UID){ isAdmin=true; isModerator=true; modTab.style.display='flex'; adminTab.style.display='flex'; modBadgeDropdown.style.display='inline-block'; adminBadgeDropdown.style.display='inline-block'; onlineUsers.add(uid); }
 }
@@ -159,6 +149,9 @@ auth.onAuthStateChanged(async user=>{
     }
     renderPage(currentPage);
 });
+
+// Смена аватарки
+document.getElementById('menuChangeAvatar').onclick=()=>{ const input=document.createElement('input'); input.type='file'; input.accept='image/*'; input.onchange=async(e)=>{ const file=e.target.files[0]; if(!file||!currentUser)return; const reader=new FileReader(); reader.onload=async(ev)=>{ const base64=ev.target.result; profileAvatar.src=base64; dropdownAvatar.src=base64; await db.collection('users').doc(currentUser.uid).set({avatarBase64:base64},{merge:true}); showToast('Аватар обновлён!'); }; reader.readAsDataURL(file); }; input.click(); };
 // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
 let currentEditingPostId = null;
 let uploadedFiles = [];
@@ -166,7 +159,7 @@ let editingUploadedFiles = [];
 let currentProfileUid = null;
 
 // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
-function showToast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
+function showToast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
 function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 function getUserAvatar(data) { return data?.avatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(data?.displayName || 'User')}&background=6a4eff&color=fff`; }
 function getFrameClass(role, achievements) {
@@ -177,14 +170,7 @@ function getFrameClass(role, achievements) {
     return '';
 }
 
-// ========== ОНЛАЙН СТАТУС ==========
-if (currentUser) {
-    const userStatusRef = db.collection('users').doc(currentUser.uid);
-    userStatusRef.set({ online: true }, { merge: true });
-    window.addEventListener('beforeunload', () => userStatusRef.set({ online: false }, { merge: true }));
-}
-
-// ========== ЗАГРУЗКА ФАЙЛОВ (общая) ==========
+// ========== ЗАГРУЗКА ФАЙЛОВ ==========
 async function uploadFiles(files) {
     const uploaded = [];
     for (const file of files) {
@@ -198,7 +184,6 @@ async function uploadFiles(files) {
     return uploaded;
 }
 
-// ========== ПРЕДПРОСМОТР ФАЙЛОВ ==========
 function updateFilePreview(containerId = 'filePreview', filesArray = uploadedFiles, editable = true) {
     const prev = document.getElementById(containerId);
     let html = '';
@@ -214,7 +199,6 @@ window.removeFile = (index, containerId) => {
     updateFilePreview(containerId, containerId === 'filePreview' ? uploadedFiles : editingUploadedFiles, true);
 };
 
-// ========== ВСТАВКА ФАЙЛА В ТЕКСТ ==========
 function insertAtCursor(textarea, textToInsert) {
     const start = textarea.selectionStart, end = textarea.selectionEnd;
     textarea.value = textarea.value.substring(0, start) + textToInsert + textarea.value.substring(end);
@@ -224,7 +208,7 @@ function insertAtCursor(textarea, textToInsert) {
 
 // ========== РЕНДЕР СТРАНИЦ ==========
 async function renderPage(page) {
-    pageTitle.textContent = page === 'home' ? 'Главная' : page === 'profile' ? 'Профиль' : page === 'moderation' ? 'Модерация' : page === 'users' ? 'Пользователи' : 'Настройки';
+    pageTitle.textContent = page === 'home' ? 'Главная' : page === 'profile' ? 'Профиль' : page === 'moderation' ? 'Модерация' : page === 'users' ? 'Пользователи' : '';
     if (page === 'home') {
         pageContent.innerHTML = `<div class="forum-grid"><div class="topics-area"><div class="section-header"><h2>🔥 Последние темы</h2><button class="submit-btn" style="width:auto;padding:10px 20px" id="createTopicInline">+ Новая тема</button></div><div id="topicsList"></div></div><div class="right-sidebar"><h3>❤️ Популярные</h3><div id="popularTopics"></div><h3>💬 Последние ответы</h3><div id="recentComments"></div></div></div>`;
         document.getElementById('createTopicInline').onclick = openNewTopicModal;
@@ -241,10 +225,11 @@ async function renderPage(page) {
                 <div class="avatar-frame ${frameClass}"><img src="${getUserAvatar(data)}" style="width:80px;height:80px;border-radius:50%"></div>
                 <div><h2>${escapeHtml(data.displayName || currentUser.email)} ${badge} ${isOnline ? '<span class="online-dot"></span>' : ''}</h2><p>${data.email}</p></div>
             </div>
-            <div style="margin-top:20px"><h3>Достижения</h3><div>${(data.achievements || []).map(a => `<span style="background:rgba(106,78,255,0.2);padding:5px 10px;border-radius:20px;margin-right:5px">🏆 ${a}</span>`).join('') || 'Нет достижений'}</div></div>
+            <div style="margin-top:20px"><h3>Достижения</h3><div id="achievementsList"></div></div>
             <h3 style="margin-top:20px">Темы пользователя</h3><div id="userTopics"></div>
             <h3>Последние комментарии</h3><div id="userComments"></div>
         </div>`;
+        loadAchievements(uid, data.achievements || []);
         loadUserTopics(uid); loadUserComments(uid);
     } else if (page === 'moderation') {
         if (!isModerator) { pageContent.innerHTML = '<p>Доступ запрещён</p>'; return; }
@@ -254,7 +239,7 @@ async function renderPage(page) {
             <div id="modContent"></div>`;
         document.getElementById('modPostsTab').onclick = () => loadModTopics();
         document.getElementById('modCommentsTab').onclick = () => loadModComments();
-        document.getElementById('openReportsBtn').onclick = () => document.getElementById('reportsModal').classList.add('active');
+        document.getElementById('openReportsBtn').onclick = () => { document.getElementById('reportsModal').classList.add('active'); loadReports(); };
         loadModTopics();
     } else if (page === 'users') {
         if (!isAdmin) { pageContent.innerHTML = '<p>Только админ</p>'; return; }
@@ -270,7 +255,33 @@ async function renderPage(page) {
 }
 window.setUserRole = async (uid, role) => { await db.collection('users').doc(uid).set({ role }, { merge: true }); showToast('Роль обновлена'); if (currentPage === 'users') renderPage('users'); };
 
-// ========== ЗАГРУЗКА ТЕМ ==========
+// ========== ДОСТИЖЕНИЯ ==========
+function loadAchievements(uid, currentAchievements) {
+    const container = document.getElementById('achievementsList');
+    const achievements = [
+        { id: 'first_post', title: 'Первый пост', desc: 'Опубликуйте свою первую тему', target: 1, icon: '📝' },
+        { id: 'verified_5', title: 'Проверенный', desc: 'Получите 5 проверенных постов', target: 5, icon: '✅' },
+        { id: 'verified_10', title: 'Мастер проверок', desc: 'Получите 10 проверенных постов', target: 10, icon: '🏆' },
+        { id: 'likes_10', title: 'Популярный', desc: 'Получите 10 лайков на пост', target: 10, icon: '❤️' }
+    ];
+    let html = '';
+    achievements.forEach(a => {
+        const completed = currentAchievements?.includes(a.id);
+        const progress = completed ? a.target : 0; // упрощённо
+        const locked = !completed;
+        html += `<div class="achievement-card ${locked ? 'locked' : ''}">
+            <div class="achievement-icon">${a.icon}</div>
+            <div class="achievement-info">
+                <div class="achievement-title">${a.title}</div>
+                <div class="achievement-desc">${a.desc}</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${(progress / a.target) * 100}%"></div></div>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+
+// ========== ТЕМЫ ==========
 async function loadTopics(term = '') {
     const container = document.getElementById('topicsList'); if (!container) return;
     let q = db.collection('forum_posts').orderBy('createdAt', 'desc').limit(20);
@@ -304,18 +315,18 @@ async function loadModComments() { const snap = await db.collectionGroup('commen
 window.deleteComment = async (path) => { if (confirm('Удалить комментарий?')) { const parts = path.split('/'); const postId = parts[parts.indexOf('forum_posts') + 1]; const commentId = parts[parts.indexOf('comments') + 1]; await db.collection('forum_posts').doc(postId).collection('comments').doc(commentId).delete(); loadModComments(); showToast('Комментарий удалён'); } };
 
 // ========== ЖАЛОБЫ ==========
-window.reportPost = async (postId) => { if (!currentUser) return alert('Войдите'); await db.collection('reports').add({ type: 'post', targetId: postId, reportedBy: currentUser.uid, createdAt: new Date(), status: 'pending' }); showToast('Жалоба отправлена'); };
-window.reportComment = async (postId, commentId) => { if (!currentUser) return alert('Войдите'); await db.collection('reports').add({ type: 'comment', postId, commentId, reportedBy: currentUser.uid, createdAt: new Date(), status: 'pending' }); showToast('Жалоба отправлена'); };
+window.reportPost = async (postId) => { if (!currentUser) return alert('Войдите'); await db.collection('reports').add({ type: 'post', targetId: postId, reportedBy: currentUser.uid, reportedByName: currentUser.displayName || currentUser.email, reason: 'Нарушение', createdAt: new Date(), status: 'pending' }); showToast('Жалоба отправлена'); };
+window.reportComment = async (postId, commentId) => { if (!currentUser) return alert('Войдите'); await db.collection('reports').add({ type: 'comment', postId, commentId, reportedBy: currentUser.uid, reportedByName: currentUser.displayName || currentUser.email, reason: 'Нарушение', createdAt: new Date(), status: 'pending' }); showToast('Жалоба отправлена'); };
 async function loadReports() {
     const snap = await db.collection('reports').where('status', '==', 'pending').get(); let html = '';
-    snap.forEach(d => { const r = d.data(); html += `<div><strong>${r.type}</strong> ID: ${r.targetId} <button onclick="resolveReport('${d.id}','dismiss')">❌</button><button onclick="resolveReport('${d.id}','delete')">🗑️</button></div>`; });
+    snap.forEach(d => { const r = d.data(); html += `<div style="padding:10px;border-bottom:1px solid rgba(106,78,255,0.2)"><strong>${r.type}</strong> от ${r.reportedByName}<br>ID: ${r.targetId} <button onclick="resolveReport('${d.id}','dismiss')">❌</button><button onclick="resolveReport('${d.id}','delete')">🗑️</button></div>`; });
     document.getElementById('reportsList').innerHTML = html || '<p>Нет жалоб</p>';
 }
 window.resolveReport = async (reportId, action) => {
     const report = await db.collection('reports').doc(reportId).get(); const data = report.data();
     if (action === 'delete') {
         if (data.type === 'post') await db.collection('forum_posts').doc(data.targetId).delete();
-        else if (data.type === 'comment') { const parts = data.commentPath.split('/'); await db.collection('forum_posts').doc(parts[1]).collection('comments').doc(parts[3]).delete(); }
+        else if (data.type === 'comment') { const parts = data.commentPath?.split('/') || []; if (parts.length) await db.collection('forum_posts').doc(parts[1]).collection('comments').doc(parts[3]).delete(); }
     }
     await db.collection('reports').doc(reportId).update({ status: 'resolved' });
     loadReports(); showToast('Обработано');
@@ -333,8 +344,7 @@ document.getElementById('createTopicBtn').onclick = async () => {
     const title = document.getElementById('topicTitle').value.trim(); const content = document.getElementById('topicContent').value.trim();
     if (!title || !content) { alert('Заполните'); return; }
     const userSnap = await db.collection('users').doc(currentUser.uid).get(); const userData = userSnap.data() || {};
-    const achievements = userData.achievements || [];
-    await db.collection('forum_posts').add({ title, content, files: uploadedFiles, authorId: currentUser.uid, authorName: currentUser.displayName || currentUser.email, authorAvatar: userData.avatarBase64 || '', authorRole: userData.role || 'user', authorAchievements: achievements, createdAt: new Date(), likes: 0, commentCount: 0, verified: false });
+    await db.collection('forum_posts').add({ title, content, files: uploadedFiles, authorId: currentUser.uid, authorName: currentUser.displayName || currentUser.email, authorAvatar: userData.avatarBase64 || '', authorRole: userData.role || 'user', authorAchievements: userData.achievements || [], createdAt: new Date(), likes: 0, commentCount: 0, verified: false });
     document.getElementById('newTopicModal').classList.remove('active'); uploadedFiles = []; updateFilePreview('filePreview', []);
     if (currentPage === 'home') loadTopics(); showToast('Тема создана!');
 };
@@ -348,8 +358,9 @@ window.openTopic = async (postId) => {
         <div class="avatar-frame ${getFrameClass(post.authorRole, post.authorAchievements)}" style="cursor:pointer" onclick="showProfile('${post.authorId}')"><img src="${post.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(post.authorName)}" style="width:40px;height:40px;border-radius:50%"></div>
         <div><strong>${escapeHtml(post.authorName)} ${post.authorRole === 'admin' ? '👑' : post.authorRole === 'moderator' ? '🛡️' : ''}</strong><br>${post.createdAt?.toDate().toLocaleString()}</div>
     </div><div>${escapeHtml(post.content)}</div>`;
-    if (post.files?.length) { html += '<div style="margin-top:20px"><h4>📎 Вложения:</h4>'; post.files.forEach(f => { if (f.type?.startsWith('image/')) html += `<img src="${f.url}" style="max-width:100%;border-radius:12px;margin:5px 0">`; else html += `<div><a href="${f.url}" target="_blank">${f.name}</a></div>`; }); html += '</div>'; }
-    html += `<button class="submit-btn" style="width:auto;margin-top:15px" onclick="reportPost('${postId}')">⚠️ Пожаловаться</button>`;
+    if (post.files?.length) { html += '<div style="margin-top:20px"><h4>📎 Вложения:</h4>'; post.files.forEach(f => { html += `<div class="file-attachment"><span class="file-icon">${f.type?.startsWith('image/') ? '🖼️' : '📄'}</span><div class="file-info"><a href="${f.url}" target="_blank" class="file-name">${f.name}</a><div class="file-meta"><span><i class="far fa-hdd"></i> ${(f.size/1024).toFixed(1)} KB</span><span><i class="far fa-eye"></i> ${f.downloads || 0}</span></div></div></div>`; }); html += '</div>'; }
+    if (currentUser && (currentUser.uid === post.authorId || isModerator)) html += `<button class="submit-btn" style="width:auto;margin-top:10px" onclick="editPost('${postId}')">✏️ Редактировать</button>`;
+    html += `<button class="submit-btn" style="width:auto;margin-top:10px" onclick="reportPost('${postId}')">⚠️ Пожаловаться</button>`;
     document.getElementById('viewTopicContent').innerHTML = html;
     // Лайк
     const likeRef = postRef.collection('likes').doc(currentUser?.uid || 'guest'); const likeSnap = await likeRef.get(); const liked = likeSnap.exists;
@@ -393,11 +404,6 @@ document.getElementById('closeEditPostModal').onclick = () => document.getElemen
 window.deletePost = async (id) => { if (confirm('Удалить пост?')) { await db.collection('forum_posts').doc(id).delete(); if (currentPage === 'moderation') loadModTopics(); else loadTopics(); showToast('Пост удалён'); } };
 window.toggleVerified = async (id, val) => { await db.collection('forum_posts').doc(id).update({ verified: val }); if (currentPage === 'moderation') loadModTopics(); };
 window.showProfile = async (uid) => { currentProfileUid = uid; currentPage = 'profile'; renderPage('profile'); };
-
-// ========== НАСТРОЙКИ ==========
-document.getElementById('saveSettingsBtn').onclick = async () => { if (!currentUser) return; const settings = { showOnline: document.getElementById('showOnline').checked, receiveEmails: document.getElementById('receiveEmails').checked }; await db.collection('users').doc(currentUser.uid).set({ settings }, { merge: true }); showToast('Сохранено'); document.getElementById('settingsModal').classList.remove('active'); };
-document.getElementById('closeSettingsModal').onclick = () => document.getElementById('settingsModal').classList.remove('active');
-document.getElementById('closeProfileModal').onclick = () => document.getElementById('profileModal').classList.remove('active');
 
 // ========== ФОН ==========
 function bg(){let c=document.getElementById('neon-balls'); for(let i=0;i<15;i++){let b=document.createElement('div');b.className='neon-ball';b.style.width=b.style.height=(120+Math.random()*200)+'px';b.style.left=Math.random()*100+'%';b.style.top=Math.random()*100+'%';b.style.background=['#6a4eff','#a855f7','#ec4899'][i%3];c.appendChild(b);} c=document.getElementById('particles'); for(let i=0;i<80;i++){let p=document.createElement('div');p.className='particle';p.style.left=Math.random()*100+'%';p.style.animationDelay=Math.random()*8+'s';c.appendChild(p);} c=document.getElementById('stars'); for(let i=0;i<150;i++){let s=document.createElement('div');s.className='star';s.style.left=Math.random()*100+'%';s.style.top=Math.random()*100+'%';c.appendChild(s);}} bg();
