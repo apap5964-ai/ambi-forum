@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>AMBI FORUM</title>
+    <title>AMBI FORUM — Сообщество</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
     <style>
         *{margin:0;padding:0;box-sizing:border-box;cursor:none!important}body{background:#0a0a0f;font-family:'Inter',sans-serif;color:#fff;min-height:100vh;cursor:none!important}body.custom-cursor-disabled,body.custom-cursor-disabled *{cursor:auto!important}::-webkit-scrollbar{width:0;background:0 0}
@@ -33,6 +33,7 @@
     <div class="nav-item" data-page="profile"><i>👤</i> Профиль</div>
     <div class="nav-item" data-page="settings"><i>⚙️</i> Настройки</div>
     <div class="nav-item" data-page="moderation" id="modTab" style="display:none"><i>🛡️</i> Модерация</div>
+    <div class="nav-item" data-page="users" id="adminTab" style="display:none"><i>👥</i> Пользователи</div>
     <div class="nav-section"><div class="nav-section-title">Сообщество</div><div class="nav-item" data-page="new"><i>➕</i> Новая тема</div></div>
 </div>
 
@@ -58,7 +59,13 @@
 <div class="modal" id="newTopicModal"><div class="modal-card"><div class="modal-header"><h3>📝 Новая тема</h3><span class="close-btn" id="closeNewTopicModal">&times;</span></div><div class="input-group"><input type="text" id="topicTitle" placeholder="Заголовок"></div><div class="input-group"><textarea id="topicContent" placeholder="Текст" style="height:150px"></textarea></div><div class="file-upload-area" id="topicFileUpload" style="border:2px dashed rgba(106,78,255,.3);border-radius:16px;padding:15px;text-align:center;margin-bottom:20px;cursor:pointer">📎 Прикрепить файлы</div><input type="file" id="topicFileInput" multiple style="display:none"><div id="filePreview"></div><button class="submit-btn" id="createTopicBtn">Опубликовать</button></div></div>
 <div class="modal" id="viewTopicModal"><div class="modal-card"><div class="modal-header"><h3 id="viewTopicTitle"></h3><span class="close-btn" id="closeViewTopicModal">&times;</span></div><div id="viewTopicContent"></div><div id="commentsSection" style="margin:20px 0"></div><div class="input-group"><textarea id="commentInput" placeholder="Комментарий..."></textarea></div><button class="submit-btn" id="addCommentBtn">Отправить</button></div></div>
 <div class="modal" id="settingsModal"><div class="modal-card"><div class="modal-header"><h3>⚙️ Настройки</h3><span class="close-btn" id="closeSettingsModal">&times;</span></div><div class="checkbox-group"><label><input type="checkbox" id="showOnline"> Показывать онлайн статус</label></div><div class="checkbox-group"><label><input type="checkbox" id="receiveEmails"> Получать новости</label></div><button class="submit-btn" id="saveSettingsBtn">Сохранить</button></div></div>
-<div class="modal" id="editPostModal"><div class="modal-card"><div class="modal-header"><h3>✏️ Редактировать</h3><span class="close-btn" id="closeEditPostModal">&times;</span></div><div class="input-group"><input type="text" id="editPostTitle"></div><div class="input-group"><textarea id="editPostContent" style="height:150px"></textarea></div><button class="submit-btn" id="saveEditPostBtn">Сохранить</button></div></div>
+<div class="modal" id="editPostModal"><div class="modal-card"><div class="modal-header"><h3>✏️ Редактировать</h3><span class="close-btn" id="closeEditPostModal">&times;</span></div><div class="input-group"><input type="text" id="editPostTitle"></div><div class="input-group"><textarea id="editPostContent" style="height:150px"></textarea></div>
+    <div style="margin:20px 0"><strong>📎 Вложения:</strong></div>
+    <div id="editFilePreview"></div>
+    <div class="file-upload-area" id="editFileUpload" style="border:2px dashed rgba(106,78,255,.3);border-radius:16px;padding:15px;text-align:center;cursor:pointer">➕ Добавить ещё файлы</div>
+    <input type="file" id="editFileInput" multiple style="display:none">
+    <button class="submit-btn" id="saveEditPostBtn" style="margin-top:20px">Сохранить</button>
+</div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -69,12 +76,12 @@ firebase.initializeApp(firebaseConfig); const auth=firebase.auth(); const db=fir
 const CLOUD_NAME="doptuvy8l", UPLOAD_PRESET="forum_preset";
 const ADMIN_UID="Gs8CNzqqjuQZOYgrzetr4HsSJT42";
 
-let currentUser=null, currentPage='home', isAdmin=false, isModerator=false;
+let currentUser=null, currentPage='home', isAdmin=false, isModerator=false, currentEditingPostId=null, uploadedFiles=[];
 const profileBtn=document.getElementById('profileBtn'), profileDropdown=document.getElementById('profileDropdown'), guestDropdown=document.getElementById('guestDropdown'), userDropdown=document.getElementById('userDropdown');
 const profileAvatar=document.getElementById('profileAvatar'), profileName=document.getElementById('profileName'), dropdownAvatar=document.getElementById('dropdownAvatar'), dropdownName=document.getElementById('dropdownName'), dropdownEmail=document.getElementById('dropdownEmail');
 const modBadgeDropdown=document.getElementById('modBadgeDropdown'), adminBadgeDropdown=document.getElementById('adminBadgeDropdown');
 const sideMenu=document.getElementById('sideMenu'), menuTrigger=document.getElementById('menuTrigger'), menuBtn=document.getElementById('menuBtn');
-const modTab=document.getElementById('modTab');
+const modTab=document.getElementById('modTab'), adminTab=document.getElementById('adminTab');
 const pageTitle=document.getElementById('pageTitle'), pageContent=document.getElementById('pageContent');
 
 // Курсор
@@ -91,6 +98,7 @@ menuTrigger.addEventListener('mouseenter',openMenu); sideMenu.addEventListener('
 // Навигация
 document.querySelectorAll('[data-page]').forEach(el=>el.addEventListener('click',()=>{
     const page=el.dataset.page; if(page==='new'){ openNewTopicModal(); closeMenu(); return; }
+    if((page==='users'||page==='moderation') && !isAdmin){ alert('Только админ'); return; }
     currentPage=page; renderPage(page); closeMenu();
     document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active')); el.classList.add('active');
 }));
@@ -109,13 +117,13 @@ async function loadUserData(uid){
         isAdmin = (data.role === 'admin' || uid === ADMIN_UID);
         isModerator = (data.role === 'moderator' || isAdmin);
         modTab.style.display = isModerator ? 'flex' : 'none';
+        adminTab.style.display = isAdmin ? 'flex' : 'none';
         modBadgeDropdown.style.display = isModerator ? 'inline-block' : 'none';
         adminBadgeDropdown.style.display = isAdmin ? 'inline-block' : 'none';
     } else if(uid === ADMIN_UID){
         isAdmin = true; isModerator = true;
-        modTab.style.display = 'flex';
-        modBadgeDropdown.style.display = 'inline-block';
-        adminBadgeDropdown.style.display = 'inline-block';
+        modTab.style.display = 'flex'; adminTab.style.display = 'flex';
+        modBadgeDropdown.style.display = 'inline-block'; adminBadgeDropdown.style.display = 'inline-block';
     }
 }
 auth.onAuthStateChanged(async user=>{
@@ -128,7 +136,7 @@ auth.onAuthStateChanged(async user=>{
     }else{
         profileName.textContent='Гость'; profileAvatar.src=dropdownAvatar.src='https://ui-avatars.com/api/?name=Guest&background=6a4eff&color=fff';
         guestDropdown.style.display='block'; userDropdown.style.display='none';
-        isAdmin=isModerator=false; modTab.style.display='none';
+        isAdmin=isModerator=false; modTab.style.display=adminTab.style.display='none';
         modBadgeDropdown.style.display=adminBadgeDropdown.style.display='none';
     }
     renderPage(currentPage);
@@ -150,7 +158,7 @@ document.getElementById('menuChangeAvatar').onclick=()=>{ const input=document.c
 
 // Рендер страниц
 async function renderPage(page){
-    pageTitle.textContent=page==='home'?'Главная':page==='profile'?'Профиль':page==='moderation'?'Модерация':'Настройки';
+    pageTitle.textContent=page==='home'?'Главная':page==='profile'?'Профиль':page==='moderation'?'Модерация':page==='users'?'Пользователи':'Настройки';
     if(page==='home'){
         pageContent.innerHTML=`<div class="forum-grid"><div class="topics-area"><div class="section-header"><h2>🔥 Последние темы</h2><button class="submit-btn" style="width:auto;padding:10px 20px" id="createTopicInline">+ Новая тема</button></div><div id="topicsList"></div></div><div class="right-sidebar"><h3>❤️ Популярные</h3><div id="popularTopics"></div><h3>💬 Ответы</h3><div id="recentComments"></div></div></div>`;
         document.getElementById('createTopicInline').onclick=openNewTopicModal;
@@ -165,8 +173,19 @@ async function renderPage(page){
         if(!isModerator){pageContent.innerHTML='<p>Доступ запрещён</p>';return;}
         pageContent.innerHTML=`<h2>🛡️ Модерация</h2><div id="modTopicsList"></div>`;
         loadModTopics();
+    }else if(page==='users'){
+        if(!isAdmin){pageContent.innerHTML='<p>Только админ</p>';return;}
+        pageContent.innerHTML=`<h2>👥 Пользователи</h2><div class="input-group"><input type="email" id="adminSearchEmail" placeholder="Email"></div><button class="submit-btn" id="adminSearchUserBtn">Найти</button><div id="adminSearchResult"></div>`;
+        document.getElementById('adminSearchUserBtn').onclick=async()=>{
+            const email=document.getElementById('adminSearchEmail').value;
+            const q=db.collection('users').where('email','==',email); const snap=await q.get();
+            if(snap.empty){ document.getElementById('adminSearchResult').innerHTML='<p>Не найден</p>'; return; }
+            const doc=snap.docs[0]; const data=doc.data(); const uid=doc.id; const role=data.role||'user';
+            document.getElementById('adminSearchResult').innerHTML=`<p><strong>${data.displayName}</strong> (${email})</p><p>Роль: ${role}</p><button class="submit-btn" onclick="window.setUserRole('${uid}','moderator')">Сделать модером</button> <button class="submit-btn" onclick="window.setUserRole('${uid}','user')">Снять модера</button>`;
+        };
     }
 }
+window.setUserRole=async(uid,role)=>{ await db.collection('users').doc(uid).set({role},{merge:true}); showToast('Роль обновлена'); if(currentPage==='users') renderPage('users'); };
 
 // Темы
 async function loadTopics(term=''){
@@ -183,9 +202,8 @@ async function loadRecentComments(){ const container=document.getElementById('re
 async function loadUserTopics(){ const snap=await db.collection('forum_posts').where('authorId','==',currentUser.uid).orderBy('createdAt','desc').get(); let html=''; snap.forEach(d=>{ html+=topicCard(d.id,d.data()); }); document.getElementById('userTopics').innerHTML=html||'<p>У вас нет тем</p>'; }
 async function loadModTopics(){ const snap=await db.collection('forum_posts').orderBy('createdAt','desc').get(); let html=''; snap.forEach(d=>{ const p=d.data(); html+=`<div class="topic-card"><div class="topic-title">${p.title}</div><button onclick="deletePost('${d.id}')">🗑️</button> <button onclick="editPost('${d.id}')">✏️</button> <button onclick="toggleVerified('${d.id}',${!p.verified})">${p.verified?'✅':'⬜'}</button></div>`; }); document.getElementById('modTopicsList').innerHTML=html; }
 
-// Множественная загрузка
-let uploadedFiles=[];
-function openNewTopicModal(){ document.getElementById('newTopicModal').classList.add('active'); uploadedFiles=[]; updateFilePreview(); }
+// Множественная загрузка (для новой темы)
+function openNewTopicModal(){ uploadedFiles=[]; updateFilePreview(); document.getElementById('newTopicModal').classList.add('active'); }
 document.getElementById('closeNewTopicModal').onclick=()=>document.getElementById('newTopicModal').classList.remove('active');
 document.getElementById('topicFileUpload').onclick=()=>document.getElementById('topicFileInput').click();
 document.getElementById('topicFileInput').onchange=async(e)=>{
@@ -210,7 +228,7 @@ document.getElementById('createTopicBtn').onclick=async()=>{
     if(currentPage==='home') loadTopics(); showToast('Тема создана!');
 };
 
-// Открытие темы (делегирование)
+// Открытие темы
 document.addEventListener('click', e => {
     const card = e.target.closest('[data-post-id]');
     if (card && (currentPage==='home'||currentPage==='profile')) { openTopic(card.dataset.postId); }
@@ -238,9 +256,44 @@ document.getElementById('viewTopicModal').addEventListener('click', e => { if (e
 
 // Модерация
 window.deletePost = async (id) => { if (confirm('Удалить?')) { await db.collection('forum_posts').doc(id).delete(); loadModTopics(); } };
-window.editPost = async (id) => { const snap = await db.collection('forum_posts').doc(id).get(); const p = snap.data(); document.getElementById('editPostTitle').value = p.title; document.getElementById('editPostContent').value = p.content; document.getElementById('editPostModal').classList.add('active'); document.getElementById('saveEditPostBtn').onclick = async () => { await db.collection('forum_posts').doc(id).update({ title: document.getElementById('editPostTitle').value, content: document.getElementById('editPostContent').value }); document.getElementById('editPostModal').classList.remove('active'); loadModTopics(); }; };
+window.editPost = async (id) => {
+    const snap = await db.collection('forum_posts').doc(id).get(); const p = snap.data();
+    document.getElementById('editPostTitle').value = p.title;
+    document.getElementById('editPostContent').value = p.content;
+    currentEditingPostId = id;
+    uploadedFiles = p.files ? [...p.files] : [];
+    updateEditFilePreview();
+    document.getElementById('editPostModal').classList.add('active');
+};
+function updateEditFilePreview(){
+    const prev=document.getElementById('editFilePreview'); let html='';
+    uploadedFiles.forEach((f,i)=>{ if(f.type.startsWith('image/')) html+=`<div><img src="${f.url}" style="max-width:100px;max-height:100px"> ${f.name} <button onclick="removeEditFile(${i})">❌</button></div>`; else html+=`<div>📄 ${f.name} <button onclick="removeEditFile(${i})">❌</button></div>`; });
+    prev.innerHTML=html;
+}
+window.removeEditFile=(i)=>{ uploadedFiles.splice(i,1); updateEditFilePreview(); };
+document.getElementById('editFileUpload').onclick=()=>document.getElementById('editFileInput').click();
+document.getElementById('editFileInput').onchange=async(e)=>{
+    const files=Array.from(e.target.files);
+    for(const file of files){
+        const fd=new FormData(); fd.append('file',file); fd.append('upload_preset',UPLOAD_PRESET);
+        const endpoint=file.type.startsWith('image/')?`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`:`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
+        const res=await fetch(endpoint,{method:'POST',body:fd}); const data=await res.json();
+        uploadedFiles.push({url:data.secure_url,name:file.name,type:file.type,size:file.size});
+    }
+    updateEditFilePreview();
+};
+document.getElementById('saveEditPostBtn').onclick=async()=>{
+    if(!currentEditingPostId)return;
+    const newTitle=document.getElementById('editPostTitle').value.trim();
+    const newContent=document.getElementById('editPostContent').value.trim();
+    if(!newTitle||!newContent){alert('Заполните');return;}
+    await db.collection('forum_posts').doc(currentEditingPostId).update({title:newTitle,content:newContent,files:uploadedFiles});
+    document.getElementById('editPostModal').classList.remove('active'); currentEditingPostId=null; uploadedFiles=[]; updateFilePreview();
+    if(currentPage==='moderation') loadModTopics(); else if(currentPage==='home') loadTopics();
+    showToast('Пост обновлён!');
+};
 window.toggleVerified = async (id, val) => { await db.collection('forum_posts').doc(id).update({ verified: val }); loadModTopics(); };
-document.getElementById('closeEditPostModal').onclick = () => document.getElementById('editPostModal').classList.remove('active');
+document.getElementById('closeEditPostModal').onclick = () => { document.getElementById('editPostModal').classList.remove('active'); currentEditingPostId=null; uploadedFiles=[]; };
 
 // Поиск
 document.getElementById('searchInput').addEventListener('input', e => { if (currentPage === 'home') loadTopics(e.target.value); });
