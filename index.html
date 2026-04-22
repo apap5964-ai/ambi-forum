@@ -91,8 +91,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script>
-const firebaseConfig={apiKey:"AIzaSyDCaTAB8wBL-VyFXwo5UlBUwwb51LRb2a4",authDomain:"ambi-loader-site.firebaseapp.com",projectId:"ambi-loader-site",storageBucket:"ambi-loader-site.firebasestorage.app",messagingSenderId:"751272275051",appId:"1:751272275051:web:6f9976c1bc05f606a0d52e"};
+<script>const firebaseConfig={apiKey:"AIzaSyDCaTAB8wBL-VyFXwo5UlBUwwb51LRb2a4",authDomain:"ambi-loader-site.firebaseapp.com",projectId:"ambi-loader-site",storageBucket:"ambi-loader-site.firebasestorage.app",messagingSenderId:"751272275051",appId:"1:751272275051:web:6f9976c1bc05f606a0d52e"};
 firebase.initializeApp(firebaseConfig); const auth=firebase.auth(); const db=firebase.firestore();
 const CLOUD_NAME="doptuvy8l", UPLOAD_PRESET="forum_preset", ADMIN_UID="Gs8CNzqqjuQZOYgrzetr4HsSJT42";
 
@@ -140,7 +139,7 @@ document.getElementById('menuRegister').onclick=()=>{authModal.classList.add('ac
 document.getElementById('closeAuthModal').onclick=()=>authModal.classList.remove('active');
 loginForm.onsubmit=async(e)=>{e.preventDefault(); try{await auth.signInWithEmailAndPassword(loginEmail.value,loginPassword.value);authModal.classList.remove('active');}catch(err){alert(err.message);}};
 
-// 🔥 ИСПРАВЛЕННАЯ РЕГИСТРАЦИЯ (добавлен await и задержка)
+// 🔥 ИСПРАВЛЕННАЯ РЕГИСТРАЦИЯ (с await и задержкой)
 registerForm.onsubmit = async (e) => {
   e.preventDefault();
   if (regPassword.value !== regConfirm.value) {
@@ -151,10 +150,9 @@ registerForm.onsubmit = async (e) => {
     const cred = await auth.createUserWithEmailAndPassword(regEmail.value, regPassword.value);
     await cred.user.updateProfile({ displayName: regUsername.value });
     
-    // 🔥 Ждём, чтобы токен точно обновился
+    // Небольшая задержка, чтобы токен точно обновился
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    // 🔥 Важно: await перед записью в Firestore
     await db.collection('users').doc(cred.user.uid).set({
       displayName: regUsername.value,
       email: regEmail.value,
@@ -171,7 +169,7 @@ registerForm.onsubmit = async (e) => {
   }
 };
 
-// загрузка пользователя (с кэшированием кастомизации)
+// загрузка пользователя
 async function loadUserData(uid){
     const docRef=db.collection('users').doc(uid); const snap=await docRef.get();
     if(snap.exists){ const data=snap.data();
@@ -215,9 +213,7 @@ function getFrameClass(role, achievements, customFrame) {
     if (achievements?.includes('verified_5')) return 'frame-gold';
     if (achievements?.includes('verified_10')) return 'frame-diamond';
     return '';
-}
-
-// кастомизация профиля
+}// кастомизация профиля
 async function openCustomizeModal() {
     if (!currentUser) return alert('Войдите');
     const snap = await db.collection('users').doc(currentUser.uid).get();
@@ -330,53 +326,202 @@ async function renderPage(page) {
 window.setUserRole = async (uid, role) => { await db.collection('users').doc(uid).set({ role }, { merge: true }); showToast('Роль обновлена'); if (currentPage === 'users') renderPage('users'); };
 
 // достижения
-async function loadAchievements(uid, currentAchievements) { /* без изменений */ }
-
-// темы
-async function loadTopics(term = '') { /* ... */ }
-function topicCard(id, p) { /* ... */ }
-async function loadPopular() { /* ... */ }
-async function loadRecentComments() { /* ... */ }
-async function loadUserTopics(uid) { /* ... */ }
-async function loadUserComments(uid) { /* ... */ }
-
-// модерация
-async function loadModTopics() { /* ... */ }
-async function loadModComments() { /* ... */ }
-window.deleteComment = async (path) => { /* ... */ };
-window.reportPost = async (postId) => { /* ... */ };
-window.reportComment = async (postId, commentId) => { /* ... */ };
-async function loadReports() { /* ... */ }
-window.resolveReport = async (reportId, action) => { /* ... */ };
-document.getElementById('reportsModal').addEventListener('click', e => { if (e.target === document.getElementById('reportsModal')) document.getElementById('reportsModal').classList.remove('active'); });
+async function loadAchievements(uid, currentAchievements) {
+    const container = document.getElementById('achievementsList');
+    const achievements = [
+        { id: 'first_post', title: 'Первый пост', desc: 'Опубликуйте первую тему', icon: '📝' },
+        { id: 'first_comment', title: 'Первый комментарий', desc: 'Оставьте комментарий', icon: '💬' },
+        { id: 'verified_5', title: 'Проверенный', desc: 'Получите 5 лайков', icon: '✅' },
+        { id: 'verified_10', title: 'Мастер', desc: 'Получите 10 лайков', icon: '🏆' }
+    ];
+    let html = '';
+    achievements.forEach(a => {
+        const unlocked = currentAchievements.includes(a.id);
+        html += `<div class="achievement-card ${unlocked ? '' : 'locked'}"><div class="achievement-icon">${a.icon}</div><div class="achievement-info"><div class="achievement-title">${a.title}</div><div class="achievement-desc">${a.desc}</div></div></div>`;
+    });
+    container.innerHTML = html;
+}// темы
+async function loadTopics(term = '') {
+    const container = document.getElementById('topicsList'); if (!container) return;
+    let q = db.collection('forum_posts').orderBy('createdAt', 'desc').limit(20);
+    if (term) q = db.collection('forum_posts').where('title', '>=', term).where('title', '<=', term + '\uf8ff').orderBy('title').limit(20);
+    const snap = await q.get(); let html = '';
+    snap.forEach(d => { const p = d.data(); html += topicCard(d.id, p); });
+    container.innerHTML = html || '<p>Нет тем</p>';
+}
+function topicCard(id, p) {
+    return `<div class="topic-card" data-post-id="${id}"><div class="topic-title">${escapeHtml(p.title)} ${p.verified ? '✅' : ''}</div><div class="topic-meta"><span>📅 ${p.createdAt?.toDate().toLocaleString() || ''}</span><span>💬 ${p.commentCount || 0}</span><span>❤️ ${p.likes || 0}</span></div><div class="topic-author"><img src="${p.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.authorName)}"> ${escapeHtml(p.authorName)}</div></div>`;
+}
+async function loadPopular() {
+    const container = document.getElementById('popularTopics'); const snap = await db.collection('forum_posts').orderBy('likes', 'desc').limit(5).get(); let html = '';
+    snap.forEach(d => { const p = d.data(); html += `<div class="recent-item" data-post-id="${d.id}"><img src="${p.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.authorName)}" style="width:24px;height:24px;border-radius:50%"><div><strong>${escapeHtml(p.title)}</strong><br><span>❤️ ${p.likes || 0}</span></div></div>`; });
+    container.innerHTML = html || '<p>Нет</p>';
+}
+async function loadRecentComments() {
+    const container = document.getElementById('recentComments'); const snap = await db.collectionGroup('comments').orderBy('createdAt', 'desc').limit(5).get(); let html = '';
+    snap.forEach(d => { const c = d.data(); html += `<div class="recent-item"><div><strong>${c.authorName}</strong><br>${c.text.substring(0, 30)}...</div></div>`; });
+    container.innerHTML = html || '<p>Нет</p>';
+}
+async function loadUserTopics(uid) {
+    const container = document.getElementById('userTopics'); const snap = await db.collection('forum_posts').where('authorId', '==', uid).orderBy('createdAt', 'desc').get(); let html = '';
+    snap.forEach(d => { html += topicCard(d.id, d.data()); });
+    container.innerHTML = html || '<p>У вас нет тем</p>';
+}
+async function loadUserComments(uid) {
+    const container = document.getElementById('userComments'); const snap = await db.collectionGroup('comments').where('authorId', '==', uid).orderBy('createdAt', 'desc').limit(10).get(); let html = '';
+    snap.forEach(d => { const c = d.data(); html += `<div style="padding:10px;background:rgba(20,20,40,.5);border-radius:12px;margin-bottom:10px"><strong>${c.authorName}</strong><br>${c.text}</div>`; });
+    container.innerHTML = html || '<p>Нет комментариев</p>';
+}
 
 // создание темы
-function openNewTopicModal() { /* ... */ }
+function openNewTopicModal() { uploadedFiles = []; updateFilePreview(); document.getElementById('newTopicModal').classList.add('active'); }
 document.getElementById('closeNewTopicModal').onclick = () => document.getElementById('newTopicModal').classList.remove('active');
-document.getElementById('topicFileInput').onchange = async (e) => { /* ... */ };
 document.getElementById('insertImageBtn').onclick = () => document.getElementById('topicFileInput').click();
 document.getElementById('attachFileBtn').onclick = () => document.getElementById('topicFileInput').click();
-document.getElementById('createTopicBtn').onclick = async () => { /* ... */ };
-
-// загрузка с прогрессом
-async function uploadFilesWithProgress(files, progressFillId, statusId) { /* ... */ }
-function updateFilePreview(containerId, filesArray, editable = true) { /* ... */ }
-window.removeFile = (index, containerId) => { /* ... */ };
-function insertAtCursor(textarea, textToInsert) { /* ... */ }
+document.getElementById('topicFileInput').onchange = async (e) => {
+    const files = Array.from(e.target.files);
+    for (const file of files) {
+        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+        const endpoint = file.type.startsWith('image/') ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload` : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
+        const res = await fetch(endpoint, { method: 'POST', body: fd }); const data = await res.json();
+        uploadedFiles.push({ url: data.secure_url, name: file.name, type: file.type, size: file.size });
+    }
+    updateFilePreview();
+};
+function updateFilePreview() {
+    const prev = document.getElementById('filePreview'); let html = '';
+    uploadedFiles.forEach((f, i) => {
+        if (f.type.startsWith('image/')) html += `<div><img src="${f.url}" style="max-width:100px;max-height:100px"> ${f.name} <button onclick="removeFile(${i})">❌</button></div>`;
+        else html += `<div>📄 ${f.name} <button onclick="removeFile(${i})">❌</button></div>`;
+    });
+    prev.innerHTML = html;
+}
+window.removeFile = (i) => { uploadedFiles.splice(i, 1); updateFilePreview(); };
+document.getElementById('createTopicBtn').onclick = async () => {
+    if (!currentUser) { alert('Войдите'); return; }
+    const title = document.getElementById('topicTitle').value.trim(); const content = document.getElementById('topicContent').value.trim();
+    if (!title || !content) { alert('Заполните'); return; }
+    const userSnap = await db.collection('users').doc(currentUser.uid).get(); const userData = userSnap.data() || {};
+    await db.collection('forum_posts').add({ title, content, files: uploadedFiles, authorId: currentUser.uid, authorName: currentUser.displayName || currentUser.email, authorAvatar: userData.avatarBase64 || '', authorRole: userData.role || 'user', createdAt: firebase.firestore.FieldValue.serverTimestamp(), likes: 0, commentCount: 0, verified: false });
+    document.getElementById('newTopicModal').classList.remove('active'); uploadedFiles = []; updateFilePreview(); document.getElementById('topicTitle').value = document.getElementById('topicContent').value = '';
+    if (currentPage === 'home') loadTopics(); showToast('Тема создана!');
+};
 
 // открытие темы
 document.addEventListener('click', e => { const card = e.target.closest('[data-post-id]'); if (card && (currentPage === 'home' || currentPage === 'profile')) { openTopic(card.dataset.postId); } });
-window.openTopic = async (postId) => { /* ... */ };
+window.openTopic = async (postId) => {
+    const postRef = db.collection('forum_posts').doc(postId); const postSnap = await postRef.get(); const post = postSnap.data();
+    const modal = document.getElementById('viewTopicModal'); document.getElementById('viewTopicTitle').textContent = post.title;
+    let html = `<div style="display:flex;gap:15px;margin-bottom:15px"><img src="${post.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(post.authorName)}" style="width:40px;height:40px;border-radius:50%"><div><strong>${escapeHtml(post.authorName)} ${post.authorRole === 'admin' ? '<span class="badge-admin">👑</span>' : post.authorRole === 'moderator' ? '<span class="badge-moderator">🛡️</span>' : ''}</strong><br>${post.createdAt?.toDate().toLocaleString()}</div></div><div>${escapeHtml(post.content)}</div>`;
+    if (post.files && post.files.length) {
+        html += '<div style="margin-top:20px"><h4>📎 Вложения:</h4>';
+        post.files.forEach(f => { if (f.type.startsWith('image/')) html += `<img src="${f.url}" style="max-width:100%;border-radius:12px;margin:5px 0">`; else html += `<div><a href="${f.url}" target="_blank">${f.name}</a></div>`; });
+        html += '</div>';
+    }
+    document.getElementById('viewTopicContent').innerHTML = html;
+    // лайк
+    const likeRef = postRef.collection('likes').doc(currentUser?.uid || 'guest'); const likeSnap = await likeRef.get(); const liked = likeSnap.exists;
+    const likeBtn = document.createElement('button'); likeBtn.className = 'submit-btn'; likeBtn.style.width = 'auto'; likeBtn.style.marginTop = '15px'; likeBtn.textContent = `❤️ ${post.likes || 0}`;
+    likeBtn.onclick = async () => { if (!currentUser) return alert('Войдите'); if (liked) { await likeRef.delete(); await postRef.update({ likes: firebase.firestore.FieldValue.increment(-1) }); } else { await likeRef.set({ userId: currentUser.uid }); await postRef.update({ likes: firebase.firestore.FieldValue.increment(1) }); } openTopic(postId); };
+    document.getElementById('viewTopicContent').append(likeBtn);
+    // комментарии
+    const commSnap = await postRef.collection('comments').orderBy('createdAt').get(); let commHtml = '';
+    for (const c of commSnap.docs) {
+        const d = c.data(); const userDoc = await db.collection('users').doc(d.authorId).get(); const userData = userDoc.data() || {};
+        const avatar = userData.avatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.authorName)}&background=6a4eff&color=fff`;
+        commHtml += `<div style="display:flex;gap:10px;margin-bottom:15px"><img src="${avatar}" class="comment-avatar"><div><strong>${d.authorName}</strong><br>${d.text}</div></div>`;
+    }
+    document.getElementById('commentsSection').innerHTML = commHtml;
+    modal.classList.add('active');
+    document.getElementById('addCommentBtn').onclick = async () => {
+        if (!currentUser) return alert('Войдите'); const text = document.getElementById('commentInput').value.trim(); if (!text) return;
+        const userSnap = await db.collection('users').doc(currentUser.uid).get(); const userData = userSnap.data() || {};
+        await postRef.collection('comments').add({ text, authorId: currentUser.uid, authorName: currentUser.displayName || currentUser.email, authorAvatar: userData.avatarBase64 || '', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        await postRef.update({ commentCount: firebase.firestore.FieldValue.increment(1) });
+        openTopic(postId);
+    };
+};
 document.getElementById('closeViewTopicModal').onclick = () => document.getElementById('viewTopicModal').classList.remove('active');
+document.getElementById('viewTopicModal').addEventListener('click', e => { if (e.target === document.getElementById('viewTopicModal')) document.getElementById('viewTopicModal').classList.remove('active'); });
 
-// редактирование
-window.editPost = async (id) => { /* ... */ };
-window.deletePost = async (id) => { if (confirm('Удалить пост?')) { await db.collection('forum_posts').doc(id).delete(); if (currentPage === 'moderation') loadModTopics(); else loadTopics(); showToast('Пост удалён'); } };
-window.toggleVerified = async (id, val) => { await db.collection('forum_posts').doc(id).update({ verified: val }); if (currentPage === 'moderation') loadModTopics(); };
-window.showProfile = async (uid) => { currentProfileUid = uid; currentPage = 'profile'; renderPage('profile'); };
+// модерация
+async function loadModTopics() {
+    const container = document.getElementById('modContent'); const snap = await db.collection('forum_posts').orderBy('createdAt', 'desc').get(); let html = '';
+    snap.forEach(d => { const p = d.data(); html += `<div class="topic-card"><div class="topic-title">${escapeHtml(p.title)}</div><button onclick="deletePost('${d.id}')">🗑️</button> <button onclick="editPost('${d.id}')">✏️</button> <button onclick="toggleVerified('${d.id}',${!p.verified})">${p.verified ? '✅' : '⬜'}</button></div>`; });
+    container.innerHTML = html;
+}
+async function loadModComments() {
+    const container = document.getElementById('modContent'); const snap = await db.collectionGroup('comments').orderBy('createdAt', 'desc').limit(30).get(); let html = '';
+    snap.forEach(d => { const c = d.data(); html += `<div><strong>${c.authorName}</strong>: ${c.text} <button onclick="deleteComment('${d.ref.path}')">🗑️</button></div>`; });
+    container.innerHTML = html;
+}
+window.deletePost = async (id) => { if (confirm('Удалить пост?')) { await db.collection('forum_posts').doc(id).delete(); loadModTopics(); showToast('Пост удалён'); } };
+window.deleteComment = async (path) => { if (confirm('Удалить комментарий?')) { await db.doc(path).delete(); loadModComments(); showToast('Комментарий удалён'); } };
+window.editPost = async (id) => {
+    const snap = await db.collection('forum_posts').doc(id).get(); const p = snap.data();
+    document.getElementById('editPostTitle').value = p.title; document.getElementById('editPostContent').value = p.content;
+    currentEditingPostId = id; uploadedFiles = p.files ? [...p.files] : []; updateEditFilePreview();
+    document.getElementById('editPostModal').classList.add('active');
+};
+function updateEditFilePreview() {
+    const prev = document.getElementById('editFilePreview'); let html = '';
+    uploadedFiles.forEach((f, i) => { if (f.type.startsWith('image/')) html += `<div><img src="${f.url}" style="max-width:100px;max-height:100px"> ${f.name} <button onclick="removeEditFile(${i})">❌</button></div>`; else html += `<div>📄 ${f.name} <button onclick="removeEditFile(${i})">❌</button></div>`; });
+    prev.innerHTML = html;
+}
+window.removeEditFile = (i) => { uploadedFiles.splice(i, 1); updateEditFilePreview(); };
+document.getElementById('editInsertImageBtn').onclick = () => document.getElementById('editFileInput').click();
+document.getElementById('editAttachFileBtn').onclick = () => document.getElementById('editFileInput').click();
+document.getElementById('editFileInput').onchange = async (e) => {
+    const files = Array.from(e.target.files);
+    for (const file of files) {
+        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+        const endpoint = file.type.startsWith('image/') ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload` : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
+        const res = await fetch(endpoint, { method: 'POST', body: fd }); const data = await res.json();
+        uploadedFiles.push({ url: data.secure_url, name: file.name, type: file.type, size: file.size });
+    }
+    updateEditFilePreview();
+};
+document.getElementById('saveEditPostBtn').onclick = async () => {
+    if (!currentEditingPostId) return;
+    const newTitle = document.getElementById('editPostTitle').value.trim(); const newContent = document.getElementById('editPostContent').value.trim();
+    if (!newTitle || !newContent) { alert('Заполните'); return; }
+    await db.collection('forum_posts').doc(currentEditingPostId).update({ title: newTitle, content: newContent, files: uploadedFiles });
+    document.getElementById('editPostModal').classList.remove('active'); currentEditingPostId = null; uploadedFiles = [];
+    if (currentPage === 'moderation') loadModTopics(); else if (currentPage === 'home') loadTopics();
+    showToast('Пост обновлён!');
+};
+window.toggleVerified = async (id, val) => { await db.collection('forum_posts').doc(id).update({ verified: val }); loadModTopics(); };
+document.getElementById('closeEditPostModal').onclick = () => { document.getElementById('editPostModal').classList.remove('active'); currentEditingPostId = null; uploadedFiles = []; };
+
+// жалобы
+async function loadReports() {
+    const container = document.getElementById('reportsList'); const snap = await db.collection('reports').orderBy('createdAt', 'desc').get(); let html = '';
+    snap.forEach(d => { const r = d.data(); html += `<div><strong>${r.type}</strong>: ${r.targetId} от ${r.reporterName} <button onclick="resolveReport('${d.id}','dismiss')">✓</button> <button onclick="resolveReport('${d.id}','delete')">🗑️</button></div>`; });
+    container.innerHTML = html || '<p>Нет жалоб</p>';
+}
+window.resolveReport = async (reportId, action) => { await db.collection('reports').doc(reportId).delete(); showToast('Жалоба обработана'); loadReports(); };
+window.reportPost = async (postId) => {
+    if (!currentUser) return alert('Войдите');
+    await db.collection('reports').add({ type: 'post', targetId: postId, reporterId: currentUser.uid, reporterName: currentUser.displayName || currentUser.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast('Жалоба отправлена');
+};
+window.reportComment = async (postId, commentId) => {
+    if (!currentUser) return alert('Войдите');
+    await db.collection('reports').add({ type: 'comment', targetId: `${postId}/comments/${commentId}`, reporterId: currentUser.uid, reporterName: currentUser.displayName || currentUser.email, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    showToast('Жалоба отправлена');
+};
+document.getElementById('closeReportsModal').onclick = () => document.getElementById('reportsModal').classList.remove('active');
+
+// поиск
+document.getElementById('searchInput').addEventListener('input', e => { if (currentPage === 'home') loadTopics(e.target.value); });
 
 // фон
-function bg(){ /* ... */ } bg();
+function bg() {
+    let c = document.getElementById('neon-balls'); for (let i = 0; i < 15; i++) { let b = document.createElement('div'); b.className = 'neon-ball'; b.style.width = b.style.height = (120 + Math.random() * 200) + 'px'; b.style.left = Math.random() * 100 + '%'; b.style.top = Math.random() * 100 + '%'; b.style.background = ['#6a4eff', '#a855f7', '#ec4899'][i % 3]; c.appendChild(b); }
+    c = document.getElementById('particles'); for (let i = 0; i < 80; i++) { let p = document.createElement('div'); p.className = 'particle'; p.style.left = Math.random() * 100 + '%'; p.style.animationDelay = Math.random() * 8 + 's'; c.appendChild(p); }
+    c = document.getElementById('stars'); for (let i = 0; i < 150; i++) { let s = document.createElement('div'); s.className = 'star'; s.style.left = Math.random() * 100 + '%'; s.style.top = Math.random() * 100 + '%'; c.appendChild(s); }
+}
+bg();
 renderPage('home');
 </script>
 </body>
