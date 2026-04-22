@@ -90,7 +90,8 @@
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script><script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script>
 const firebaseConfig={apiKey:"AIzaSyDCaTAB8wBL-VyFXwo5UlBUwwb51LRb2a4",authDomain:"ambi-loader-site.firebaseapp.com",projectId:"ambi-loader-site",storageBucket:"ambi-loader-site.firebasestorage.app",messagingSenderId:"751272275051",appId:"1:751272275051:web:6f9976c1bc05f606a0d52e"};
 firebase.initializeApp(firebaseConfig); const auth=firebase.auth(); const db=firebase.firestore();
 const CLOUD_NAME="doptuvy8l", UPLOAD_PRESET="forum_preset", ADMIN_UID="Gs8CNzqqjuQZOYgrzetr4HsSJT42";
@@ -138,7 +139,37 @@ document.getElementById('menuLogin').onclick=()=>{authModal.classList.add('activ
 document.getElementById('menuRegister').onclick=()=>{authModal.classList.add('active');registerTab.click();profileDropdown.classList.remove('active');};
 document.getElementById('closeAuthModal').onclick=()=>authModal.classList.remove('active');
 loginForm.onsubmit=async(e)=>{e.preventDefault(); try{await auth.signInWithEmailAndPassword(loginEmail.value,loginPassword.value);authModal.classList.remove('active');}catch(err){alert(err.message);}};
-registerForm.onsubmit=async(e)=>{e.preventDefault(); if(regPassword.value!==regConfirm.value){alert('Пароли не совпадают');return;} try{const cred=await auth.createUserWithEmailAndPassword(regEmail.value,regPassword.value);await cred.user.updateProfile({displayName:regUsername.value});await db.collection('users').doc(cred.user.uid).set({displayName:regUsername.value,email:regEmail.value,avatarBase64:''});authModal.classList.remove('active');}catch(err){alert(err.message);}};
+
+// 🔥 ИСПРАВЛЕННАЯ РЕГИСТРАЦИЯ (добавлен await и задержка)
+registerForm.onsubmit = async (e) => {
+  e.preventDefault();
+  if (regPassword.value !== regConfirm.value) {
+    alert('Пароли не совпадают');
+    return;
+  }
+  try {
+    const cred = await auth.createUserWithEmailAndPassword(regEmail.value, regPassword.value);
+    await cred.user.updateProfile({ displayName: regUsername.value });
+    
+    // 🔥 Ждём, чтобы токен точно обновился
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // 🔥 Важно: await перед записью в Firestore
+    await db.collection('users').doc(cred.user.uid).set({
+      displayName: regUsername.value,
+      email: regEmail.value,
+      avatarBase64: '',
+      role: 'user',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    authModal.classList.remove('active');
+    showToast('Регистрация успешна!');
+  } catch (err) {
+    console.error('Ошибка регистрации:', err);
+    alert(err.message);
+  }
+};
 
 // загрузка пользователя (с кэшированием кастомизации)
 async function loadUserData(uid){
@@ -186,7 +217,7 @@ function getFrameClass(role, achievements, customFrame) {
     return '';
 }
 
-// кастомизация профиля (исправлен undefined)
+// кастомизация профиля
 async function openCustomizeModal() {
     if (!currentUser) return alert('Войдите');
     const snap = await db.collection('users').doc(currentUser.uid).get();
@@ -218,7 +249,6 @@ document.getElementById('saveCustomizeBtn').onclick = async () => {
     if (avatarFrame !== 'none') customization.avatarFrame = avatarFrame;
     if (profileBg) customization.profileBg = profileBg;
     if (profileMiniBg) customization.profileMiniBg = profileMiniBg;
-    // удаляем undefined
     Object.keys(customization).forEach(k => customization[k] === undefined && delete customization[k]);
     
     await db.collection('users').doc(currentUser.uid).set({ customization }, { merge: true });
@@ -302,7 +332,7 @@ window.setUserRole = async (uid, role) => { await db.collection('users').doc(uid
 // достижения
 async function loadAchievements(uid, currentAchievements) { /* без изменений */ }
 
-// темы (без изменений)
+// темы
 async function loadTopics(term = '') { /* ... */ }
 function topicCard(id, p) { /* ... */ }
 async function loadPopular() { /* ... */ }
@@ -310,7 +340,7 @@ async function loadRecentComments() { /* ... */ }
 async function loadUserTopics(uid) { /* ... */ }
 async function loadUserComments(uid) { /* ... */ }
 
-// модерация (без изменений)
+// модерация
 async function loadModTopics() { /* ... */ }
 async function loadModComments() { /* ... */ }
 window.deleteComment = async (path) => { /* ... */ };
@@ -320,7 +350,7 @@ async function loadReports() { /* ... */ }
 window.resolveReport = async (reportId, action) => { /* ... */ };
 document.getElementById('reportsModal').addEventListener('click', e => { if (e.target === document.getElementById('reportsModal')) document.getElementById('reportsModal').classList.remove('active'); });
 
-// создание темы (исправлена загрузка)
+// создание темы
 function openNewTopicModal() { /* ... */ }
 document.getElementById('closeNewTopicModal').onclick = () => document.getElementById('newTopicModal').classList.remove('active');
 document.getElementById('topicFileInput').onchange = async (e) => { /* ... */ };
@@ -328,18 +358,18 @@ document.getElementById('insertImageBtn').onclick = () => document.getElementByI
 document.getElementById('attachFileBtn').onclick = () => document.getElementById('topicFileInput').click();
 document.getElementById('createTopicBtn').onclick = async () => { /* ... */ };
 
-// загрузка с прогрессом (рабочая)
+// загрузка с прогрессом
 async function uploadFilesWithProgress(files, progressFillId, statusId) { /* ... */ }
 function updateFilePreview(containerId, filesArray, editable = true) { /* ... */ }
 window.removeFile = (index, containerId) => { /* ... */ };
 function insertAtCursor(textarea, textToInsert) { /* ... */ }
 
-// открытие темы (без изменений)
+// открытие темы
 document.addEventListener('click', e => { const card = e.target.closest('[data-post-id]'); if (card && (currentPage === 'home' || currentPage === 'profile')) { openTopic(card.dataset.postId); } });
 window.openTopic = async (postId) => { /* ... */ };
 document.getElementById('closeViewTopicModal').onclick = () => document.getElementById('viewTopicModal').classList.remove('active');
 
-// редактирование (заглушки)
+// редактирование
 window.editPost = async (id) => { /* ... */ };
 window.deletePost = async (id) => { if (confirm('Удалить пост?')) { await db.collection('forum_posts').doc(id).delete(); if (currentPage === 'moderation') loadModTopics(); else loadTopics(); showToast('Пост удалён'); } };
 window.toggleVerified = async (id, val) => { await db.collection('forum_posts').doc(id).update({ verified: val }); if (currentPage === 'moderation') loadModTopics(); };
