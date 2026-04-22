@@ -74,9 +74,9 @@
 
 <!-- Модалки -->
 <div class="modal" id="authModal"><div class="modal-card"><div class="modal-header"><h3>Вход</h3><span class="close-btn" id="closeAuthModal">&times;</span></div><div style="display:flex;gap:10px;margin-bottom:20px"><button class="submit-btn" id="loginTabBtn">LOGIN</button><button class="submit-btn" id="registerTabBtn" style="background:rgba(106,78,255,.2)">REGISTER</button></div><form id="loginForm"><div class="input-group"><input type="email" id="loginEmail" placeholder="Email"></div><div class="input-group"><input type="password" id="loginPassword" placeholder="Пароль"></div><button class="submit-btn">Войти</button></form><form id="registerForm" style="display:none"><div class="input-group"><input type="text" id="regUsername" placeholder="Имя"></div><div class="input-group"><input type="email" id="regEmail" placeholder="Email"></div><div class="input-group"><input type="password" id="regPassword" placeholder="Пароль"></div><div class="input-group"><input type="password" id="regConfirm" placeholder="Подтверждение"></div><button class="submit-btn">Зарегистрироваться</button></form></div></div>
-<div class="modal" id="newTopicModal"><div class="modal-card"><div class="modal-header"><h3>📝 Новая тема</h3><span class="close-btn" id="closeNewTopicModal">&times;</span></div><div class="input-group"><input type="text" id="topicTitle" placeholder="Заголовок"></div><div class="editor-toolbar"><button type="button" id="insertImageBtn">🖼️ Вставить картинку/GIF</button><button type="button" id="attachFileBtn">📎 Прикрепить файл</button></div><div class="input-group"><textarea id="topicContent" placeholder="Текст" style="height:200px"></textarea></div><div id="uploadProgressContainer" style="display:none"><div class="upload-progress"><div id="uploadProgressFill" class="upload-progress-fill"></div></div></div><div id="filePreview"></div><input type="file" id="topicFileInput" multiple accept="image/*,image/gif" style="display:none"><button class="submit-btn" id="createTopicBtn">Опубликовать</button></div></div>
+<div class="modal" id="newTopicModal"><div class="modal-card"><div class="modal-header"><h3>📝 Новая тема</h3><span class="close-btn" id="closeNewTopicModal">&times;</span></div><div class="input-group"><input type="text" id="topicTitle" placeholder="Заголовок"></div><div class="editor-toolbar"><button type="button" id="insertImageBtn">🖼️ Вставить картинку/GIF</button><button type="button" id="attachFileBtn">📎 Прикрепить файл</button></div><div class="input-group"><textarea id="topicContent" placeholder="Текст" style="height:200px"></textarea></div><div id="uploadProgressContainer" style="display:none"><div class="upload-progress"><div id="uploadProgressFill" class="upload-progress-fill"></div></div><span id="uploadStatus"></span></div><div id="filePreview"></div><input type="file" id="topicFileInput" multiple accept="image/*,image/gif" style="display:none"><button class="submit-btn" id="createTopicBtn">Опубликовать</button></div></div>
 <div class="modal" id="viewTopicModal"><div class="modal-card"><div class="modal-header"><h3 id="viewTopicTitle"></h3><span class="close-btn" id="closeViewTopicModal">&times;</span></div><div id="viewTopicContent"></div><div id="commentsSection" style="margin:20px 0"></div><div class="input-group"><textarea id="commentInput" placeholder="Комментарий..."></textarea></div><button class="submit-btn" id="addCommentBtn">Отправить</button></div></div>
-<div class="modal" id="editPostModal"><div class="modal-card"><div class="modal-header"><h3>✏️ Редактировать</h3><span class="close-btn" id="closeEditPostModal">&times;</span></div><div class="input-group"><input type="text" id="editPostTitle"></div><div class="editor-toolbar"><button type="button" id="editInsertImageBtn">🖼️ Вставить</button><button type="button" id="editAttachFileBtn">📎 Файл</button></div><div class="input-group"><textarea id="editPostContent" style="height:200px"></textarea></div><div id="editFilePreview"></div><button class="submit-btn" id="saveEditPostBtn">Сохранить</button></div></div>
+<div class="modal" id="editPostModal"><div class="modal-card"><div class="modal-header"><h3>✏️ Редактировать</h3><span class="close-btn" id="closeEditPostModal">&times;</span></div><div class="input-group"><input type="text" id="editPostTitle"></div><div class="editor-toolbar"><button type="button" id="editInsertImageBtn">🖼️ Вставить</button><button type="button" id="editAttachFileBtn">📎 Файл</button></div><div class="input-group"><textarea id="editPostContent" style="height:200px"></textarea></div><div id="editUploadProgressContainer" style="display:none"><div class="upload-progress"><div id="editUploadProgressFill" class="upload-progress-fill"></div></div></div><div id="editFilePreview"></div><button class="submit-btn" id="saveEditPostBtn">Сохранить</button></div></div>
 <div class="modal" id="reportsModal"><div class="modal-card"><div class="modal-header"><h3>⚠️ Жалобы</h3><span class="close-btn" id="closeReportsModal">&times;</span></div><div id="reportsList"></div></div></div>
 <div class="modal" id="customizeModal"><div class="modal-card"><div class="modal-header"><h3>🎨 Кастомизация профиля</h3><span class="close-btn" id="closeCustomizeModal">&times;</span></div>
     <div class="input-group"><label>Фон профиля (GIF/PNG)</label><input type="file" id="profileBgInput" accept="image/*,image/gif"></div>
@@ -141,7 +141,7 @@ document.getElementById('closeAuthModal').onclick=()=>authModal.classList.remove
 loginForm.onsubmit=async(e)=>{e.preventDefault(); try{await auth.signInWithEmailAndPassword(loginEmail.value,loginPassword.value);authModal.classList.remove('active');}catch(err){alert(err.message);}};
 registerForm.onsubmit=async(e)=>{e.preventDefault(); if(regPassword.value!==regConfirm.value){alert('Пароли не совпадают');return;} try{const cred=await auth.createUserWithEmailAndPassword(regEmail.value,regPassword.value);await cred.user.updateProfile({displayName:regUsername.value});await db.collection('users').doc(cred.user.uid).set({displayName:regUsername.value,email:regEmail.value,avatarBase64:''});authModal.classList.remove('active');}catch(err){alert(err.message);}};
 
-// загрузка пользователя
+// загрузка пользователя (с кэшированием кастомизации)
 async function loadUserData(uid){
     const docRef=db.collection('users').doc(uid); const snap=await docRef.get();
     if(snap.exists){ const data=snap.data();
@@ -151,6 +151,8 @@ async function loadUserData(uid){
         modTab.style.display=isModerator?'flex':'none'; adminTab.style.display=isAdmin?'flex':'none';
         modBadgeDropdown.style.display=isModerator?'inline-block':'none'; adminBadgeDropdown.style.display=isAdmin?'inline-block':'none';
         if(data.settings?.showOnline!==false) onlineUsers.add(uid);
+        // кэшируем кастомизацию
+        if(data.customization) localStorage.setItem(`custom_${uid}`, JSON.stringify(data.customization));
     }else if(uid===ADMIN_UID){ isAdmin=true; isModerator=true; modTab.style.display='flex'; adminTab.style.display='flex'; modBadgeDropdown.style.display='inline-block'; adminBadgeDropdown.style.display='inline-block'; onlineUsers.add(uid); }
 }
 auth.onAuthStateChanged(async user=>{
@@ -186,7 +188,7 @@ function getFrameClass(role, achievements, customFrame) {
     return '';
 }
 
-// кастомизация профиля
+// кастомизация профиля (с кэшированием)
 async function openCustomizeModal() {
     if (!currentUser) return alert('Войдите');
     const snap = await db.collection('users').doc(currentUser.uid).get();
@@ -212,12 +214,11 @@ document.getElementById('saveCustomizeBtn').onclick = async () => {
         nickColor: document.getElementById('nickColor').value,
         nickGlow: document.getElementById('nickGlow').value,
         avatarFrame: document.getElementById('avatarFrameSelect').value,
+        profileBg: profileBg || (await db.collection('users').doc(currentUser.uid).get()).data()?.customization?.profileBg,
+        profileMiniBg: profileMiniBg || (await db.collection('users').doc(currentUser.uid).get()).data()?.customization?.profileMiniBg
     };
-    // Добавляем поля только если они не null/undefined
-    if (profileBg !== null) customization.profileBg = profileBg;
-    if (profileMiniBg !== null) customization.profileMiniBg = profileMiniBg;
-
     await db.collection('users').doc(currentUser.uid).set({ customization }, { merge: true });
+    localStorage.setItem(`custom_${currentUser.uid}`, JSON.stringify(customization));
     document.getElementById('customizeModal').classList.remove('active');
     showToast('Кастомизация сохранена!');
     if (currentPage === 'profile') renderPage('profile');
@@ -245,9 +246,11 @@ async function renderPage(page) {
     } else if (page === 'profile') {
         if (!currentUser) { pageContent.innerHTML = '<p>Войдите</p>'; return; }
         const uid = currentProfileUid || currentUser.uid;
+        // пробуем взять кастомизацию из кэша
+        let customization = JSON.parse(localStorage.getItem(`custom_${uid}`) || '{}');
         const snap = await db.collection('users').doc(uid).get(); const data = snap.data() || {};
+        customization = data.customization || customization; // Firestore приоритетнее
         const role = data.role; const badge = role === 'admin' ? '👑 Админ' : (role === 'moderator' ? '🛡️ Модер' : '');
-        const customization = data.customization || {};
         const frameClass = getFrameClass(role, data.achievements, customization.avatarFrame === 'gold' ? 'frame-gold' : customization.avatarFrame === 'diamond' ? 'frame-diamond' : null);
         const isOnline = onlineUsers.has(uid);
         const bgStyle = customization.profileBg ? `background-image:url('${customization.profileBg}')` : '';
@@ -352,7 +355,7 @@ async function loadRecentComments() { const container = document.getElementById(
 async function loadUserTopics(uid) { const snap = await db.collection('forum_posts').where('authorId', '==', uid).orderBy('createdAt', 'desc').get(); let html = ''; snap.forEach(d => { html += topicCard(d.id, d.data()); }); document.getElementById('userTopics').innerHTML = html || '<p>Нет тем</p>'; }
 async function loadUserComments(uid) { const snap = await db.collectionGroup('comments').where('authorId', '==', uid).orderBy('createdAt', 'desc').limit(10).get(); let html = ''; snap.forEach(d => { const c = d.data(); html += `<div style="padding:8px;border-bottom:1px solid rgba(106,78,255,0.1)"><strong>${c.authorName}</strong>: ${c.text.substring(0, 50)}...</div>`; }); document.getElementById('userComments').innerHTML = html || '<p>Нет комментариев</p>'; }
 
-// модерация (сокращено, но работает)
+// модерация
 async function loadModTopics() { const snap = await db.collection('forum_posts').orderBy('createdAt', 'desc').get(); let html = ''; snap.forEach(d => { const p = d.data(); html += `<div class="topic-card"><div class="topic-title">${p.title}</div><button onclick="deletePost('${d.id}')">🗑️</button> <button onclick="editPost('${d.id}')">✏️</button> <button onclick="toggleVerified('${d.id}',${!p.verified})">${p.verified ? '✅' : '⬜'}</button></div>`; }); document.getElementById('modContent').innerHTML = html; }
 async function loadModComments() { const snap = await db.collectionGroup('comments').orderBy('createdAt', 'desc').limit(50).get(); let html = ''; snap.forEach(d => { const c = d.data(); html += `<div style="padding:10px;border-bottom:1px solid rgba(106,78,255,0.1)"><strong>${c.authorName}</strong>: ${c.text} <button onclick="deleteComment('${d.ref.path}')">🗑️</button></div>`; }); document.getElementById('modContent').innerHTML = html; }
 window.deleteComment = async (path) => { if (confirm('Удалить комментарий?')) { const parts = path.split('/'); const postId = parts[parts.indexOf('forum_posts') + 1]; const commentId = parts[parts.indexOf('comments') + 1]; await db.collection('forum_posts').doc(postId).collection('comments').doc(commentId).delete(); loadModComments(); showToast('Комментарий удалён'); } };
@@ -363,7 +366,7 @@ async function loadReports() { const snap = await db.collection('reports').where
 window.resolveReport = async (reportId, action) => { const report = await db.collection('reports').doc(reportId).get(); const data = report.data(); if (action === 'delete') { if (data.type === 'post') await db.collection('forum_posts').doc(data.targetId).delete(); else if (data.type === 'comment') { const parts = data.commentPath?.split('/') || []; if (parts.length) await db.collection('forum_posts').doc(parts[1]).collection('comments').doc(parts[3]).delete(); } } await db.collection('reports').doc(reportId).update({ status: 'resolved' }); loadReports(); showToast('Обработано'); };
 document.getElementById('reportsModal').addEventListener('click', e => { if (e.target === document.getElementById('reportsModal')) document.getElementById('reportsModal').classList.remove('active'); });
 
-// создание темы
+// создание темы (исправлена загрузка)
 function openNewTopicModal() { uploadedFiles = []; updateFilePreview('filePreview', uploadedFiles); document.getElementById('topicTitle').value = document.getElementById('topicContent').value = ''; document.getElementById('newTopicModal').classList.add('active'); }
 document.getElementById('closeNewTopicModal').onclick = () => document.getElementById('newTopicModal').classList.remove('active');
 document.getElementById('topicFileInput').onchange = async (e) => {
@@ -371,11 +374,11 @@ document.getElementById('topicFileInput').onchange = async (e) => {
     const images = files.filter(f => f.type.startsWith('image/'));
     const other = files.filter(f => !f.type.startsWith('image/'));
     if (images.length) {
-        const uploadedImages = await uploadFilesWithProgress(images, 'uploadProgressFill');
+        const uploadedImages = await uploadFilesWithProgress(images, 'uploadProgressFill', 'uploadStatus');
         uploadedImages.forEach(img => insertAtCursor(document.getElementById('topicContent'), `[img]${img.url}[/img]`));
     }
     if (other.length) {
-        const uploadedOther = await uploadFilesWithProgress(other, 'uploadProgressFill');
+        const uploadedOther = await uploadFilesWithProgress(other, 'uploadProgressFill', 'uploadStatus');
         uploadedFiles.push(...uploadedOther);
         updateFilePreview('filePreview', uploadedFiles);
     }
@@ -392,10 +395,58 @@ document.getElementById('createTopicBtn').onclick = async () => {
     if (currentPage === 'home') loadTopics(); showToast('Тема создана!');
 };
 
-// загрузка с прогрессом (заглушка)
-async function uploadFilesWithProgress(files, progressFillId) { /* реализация */ return []; }
-function updateFilePreview(containerId, filesArray, editable) { /* реализация */ }
-function insertAtCursor(textarea, text) { /* реализация */ }
+// загрузка с прогрессом (рабочая)
+async function uploadFilesWithProgress(files, progressFillId, statusId) {
+    const uploaded = [];
+    const progressFill = document.getElementById(progressFillId);
+    const status = document.getElementById(statusId);
+    const container = progressFill.parentElement.parentElement;
+    container.style.display = 'block';
+    for (const file of files) {
+        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+        const endpoint = file.type.startsWith('image/') ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload` : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
+        try {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', endpoint);
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    progressFill.style.width = percent + '%';
+                    status.textContent = `${Math.round(percent)}%`;
+                }
+            };
+            const data = await new Promise((resolve, reject) => {
+                xhr.onload = () => { if (xhr.status === 200) resolve(JSON.parse(xhr.responseText)); else reject(xhr.statusText); };
+                xhr.onerror = () => reject('Network error');
+                xhr.send(fd);
+            });
+            uploaded.push({ url: data.secure_url, name: file.name, type: file.type, size: file.size });
+        } catch (err) { alert('Ошибка загрузки ' + file.name); }
+    }
+    container.style.display = 'none';
+    progressFill.style.width = '0%';
+    return uploaded;
+}
+function updateFilePreview(containerId, filesArray, editable = true) {
+    const prev = document.getElementById(containerId);
+    let html = '';
+    filesArray.forEach((f, i) => {
+        if (f.type?.startsWith('image/')) html += `<div style="display:flex;align-items:center;gap:10px;margin:5px 0"><img src="${f.url}" style="max-width:100px;max-height:100px;border-radius:8px"><span>${f.name}</span>${editable ? `<button type="button" onclick="removeFile(${i}, '${containerId}')">❌</button>` : ''}</div>`;
+        else html += `<div style="display:flex;align-items:center;gap:10px;margin:5px 0">📄 ${f.name}${editable ? `<button type="button" onclick="removeFile(${i}, '${containerId}')">❌</button>` : ''}</div>`;
+    });
+    prev.innerHTML = html;
+}
+window.removeFile = (index, containerId) => {
+    if (containerId === 'filePreview') uploadedFiles.splice(index, 1);
+    else if (containerId === 'editFilePreview') editingUploadedFiles.splice(index, 1);
+    updateFilePreview(containerId, containerId === 'filePreview' ? uploadedFiles : editingUploadedFiles, true);
+};
+function insertAtCursor(textarea, textToInsert) {
+    const start = textarea.selectionStart, end = textarea.selectionEnd;
+    textarea.value = textarea.value.substring(0, start) + textToInsert + textarea.value.substring(end);
+    textarea.selectionStart = textarea.selectionEnd = start + textToInsert.length;
+    textarea.focus();
+}
 
 // открытие темы
 document.addEventListener('click', e => { const card = e.target.closest('[data-post-id]'); if (card && (currentPage === 'home' || currentPage === 'profile')) { openTopic(card.dataset.postId); } });
