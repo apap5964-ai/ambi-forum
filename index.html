@@ -212,9 +212,11 @@ document.getElementById('saveCustomizeBtn').onclick = async () => {
         nickColor: document.getElementById('nickColor').value,
         nickGlow: document.getElementById('nickGlow').value,
         avatarFrame: document.getElementById('avatarFrameSelect').value,
-        profileBg: profileBg || (await db.collection('users').doc(currentUser.uid).get()).data()?.customization?.profileBg,
-        profileMiniBg: profileMiniBg || (await db.collection('users').doc(currentUser.uid).get()).data()?.customization?.profileMiniBg
     };
+    // Добавляем поля только если они не null/undefined
+    if (profileBg !== null) customization.profileBg = profileBg;
+    if (profileMiniBg !== null) customization.profileMiniBg = profileMiniBg;
+
     await db.collection('users').doc(currentUser.uid).set({ customization }, { merge: true });
     document.getElementById('customizeModal').classList.remove('active');
     showToast('Кастомизация сохранена!');
