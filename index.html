@@ -75,7 +75,15 @@
 <!-- Модалки -->
 <div class="modal" id="authModal"><div class="modal-card"><div class="modal-header"><h3>Вход</h3><span class="close-btn" id="closeAuthModal">&times;</span></div><div style="display:flex;gap:10px;margin-bottom:20px"><button class="submit-btn" id="loginTabBtn">LOGIN</button><button class="submit-btn" id="registerTabBtn" style="background:rgba(106,78,255,.2)">REGISTER</button></div><form id="loginForm"><div class="input-group"><input type="email" id="loginEmail" placeholder="Email"></div><div class="input-group"><input type="password" id="loginPassword" placeholder="Пароль"></div><button class="submit-btn">Войти</button></form><form id="registerForm" style="display:none"><div class="input-group"><input type="text" id="regUsername" placeholder="Имя"></div><div class="input-group"><input type="email" id="regEmail" placeholder="Email"></div><div class="input-group"><input type="password" id="regPassword" placeholder="Пароль"></div><div class="input-group"><input type="password" id="regConfirm" placeholder="Подтверждение"></div><button class="submit-btn">Зарегистрироваться</button></form></div></div>
 <div class="modal" id="newTopicModal"><div class="modal-card"><div class="modal-header"><h3>📝 Новая тема</h3><span class="close-btn" id="closeNewTopicModal">&times;</span></div><div class="input-group"><input type="text" id="topicTitle" placeholder="Заголовок"></div><div class="editor-toolbar"><button type="button" id="insertImageBtn">🖼️ Вставить картинку/GIF</button><button type="button" id="attachFileBtn">📎 Прикрепить файл</button></div><div class="input-group"><textarea id="topicContent" placeholder="Текст" style="height:200px"></textarea></div><div id="uploadProgressContainer" style="display:none"><div class="upload-progress"><div id="uploadProgressFill" class="upload-progress-fill"></div></div><span id="uploadStatus"></span></div><div id="filePreview"></div><input type="file" id="topicFileInput" multiple accept="image/*,image/gif" style="display:none"><button class="submit-btn" id="createTopicBtn">Опубликовать</button></div></div>
-<div class="modal" id="viewTopicModal"><div class="modal-card"><div class="modal-header"><h3 id="viewTopicTitle"></h3><span class="close-btn" id="closeViewTopicModal">&times;</span></div><div id="viewTopicContent"></div><div id="commentsSection" style="margin:20px 0"></div><div class="input-group"><textarea id="commentInput" placeholder="Комментарий..."></textarea></div><button class="submit-btn" id="addCommentBtn">Отправить</button></div></div>
+<div class="modal" id="viewTopicModal"><div class="modal-card"><div class="modal-header"><h3 id="viewTopicTitle"></h3><span class="close-btn" id="closeViewTopicModal">&times;</span></div><div id="viewTopicContent"></div><div id="commentsSection" style="margin:20px 0"></div>
+    <div class="input-group"><textarea id="commentInput" placeholder="Комментарий..."></textarea></div>
+    <div style="display:flex; gap:10px; margin-bottom:15px;">
+        <button type="button" id="attachCommentImageBtn" style="padding:8px 15px; background:rgba(106,78,255,0.2); border:1px solid #6a4eff; border-radius:20px; color:#fff; width:auto;">🖼️ Картинка/GIF</button>
+        <div id="commentFilePreview" style="display:flex; gap:5px;"></div>
+    </div>
+    <input type="file" id="commentFileInput" accept="image/*,image/gif" style="display:none">
+    <button class="submit-btn" id="addCommentBtn">Отправить</button>
+</div></div>
 <div class="modal" id="editPostModal"><div class="modal-card"><div class="modal-header"><h3>✏️ Редактировать</h3><span class="close-btn" id="closeEditPostModal">&times;</span></div><div class="input-group"><input type="text" id="editPostTitle"></div><div class="editor-toolbar"><button type="button" id="editInsertImageBtn">🖼️ Вставить</button><button type="button" id="editAttachFileBtn">📎 Файл</button></div><div class="input-group"><textarea id="editPostContent" style="height:200px"></textarea></div><div id="editUploadProgressContainer" style="display:none"><div class="upload-progress"><div id="editUploadProgressFill" class="upload-progress-fill"></div></div></div><div id="editFilePreview"></div><button class="submit-btn" id="saveEditPostBtn">Сохранить</button></div></div>
 <div class="modal" id="reportsModal"><div class="modal-card"><div class="modal-header"><h3>⚠️ Жалобы</h3><span class="close-btn" id="closeReportsModal">&times;</span></div><div id="reportsList"></div></div></div>
 <div class="modal" id="customizeModal"><div class="modal-card"><div class="modal-header"><h3>🎨 Кастомизация профиля</h3><span class="close-btn" id="closeCustomizeModal">&times;</span></div>
@@ -145,7 +153,7 @@ document.getElementById('menuRegister').onclick=()=>{authModal.classList.add('ac
 document.getElementById('closeAuthModal').onclick=()=>authModal.classList.remove('active');
 loginForm.onsubmit=async(e)=>{e.preventDefault(); try{await auth.signInWithEmailAndPassword(loginEmail.value,loginPassword.value);authModal.classList.remove('active');}catch(err){alert(err.message);}};
 
-// 🔥 ИСПРАВЛЕННАЯ РЕГИСТРАЦИЯ (с await и задержкой)
+// 🔥 ИСПРАВЛЕННАЯ РЕГИСТРАЦИЯ
 registerForm.onsubmit = async (e) => {
   e.preventDefault();
   if (regPassword.value !== regConfirm.value) {
@@ -155,10 +163,7 @@ registerForm.onsubmit = async (e) => {
   try {
     const cred = await auth.createUserWithEmailAndPassword(regEmail.value, regPassword.value);
     await cred.user.updateProfile({ displayName: regUsername.value });
-    
-    // Небольшая задержка, чтобы токен точно обновился
     await new Promise(resolve => setTimeout(resolve, 500));
-    
     await db.collection('users').doc(cred.user.uid).set({
       displayName: regUsername.value,
       email: regEmail.value,
@@ -166,7 +171,6 @@ registerForm.onsubmit = async (e) => {
       role: 'user',
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    
     authModal.classList.remove('active');
     showToast('Регистрация успешна!');
   } catch (err) {
@@ -207,7 +211,7 @@ auth.onAuthStateChanged(async user=>{
 // смена аватарки
 document.getElementById('menuChangeAvatar').onclick=()=>{ const input=document.createElement('input'); input.type='file'; input.accept='image/*,image/gif'; input.onchange=async(e)=>{ const file=e.target.files[0]; if(!file||!currentUser)return; const reader=new FileReader(); reader.onload=async(ev)=>{ const base64=ev.target.result; profileAvatar.src=base64; dropdownAvatar.src=base64; await db.collection('users').doc(currentUser.uid).set({avatarBase64:base64},{merge:true}); showToast('Аватар обновлён!'); }; reader.readAsDataURL(file); }; input.click(); };
 
-let currentEditingPostId = null, uploadedFiles = [], editingUploadedFiles = [], currentProfileUid = null;
+let currentEditingPostId = null, uploadedFiles = [], editingUploadedFiles = [], currentProfileUid = null, commentImageFile = null;
 
 function showToast(msg) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000); }
 function escapeHtml(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
@@ -219,6 +223,26 @@ function getFrameClass(role, achievements, customFrame) {
     if (achievements?.includes('verified_5')) return 'frame-gold';
     if (achievements?.includes('verified_10')) return 'frame-diamond';
     return '';
+}
+function getFileIcon(file) {
+    const type = file.type || '';
+    const name = file.name || '';
+    if (type.startsWith('image/')) return '🖼️';
+    if (type.startsWith('video/')) return '🎬';
+    if (type.startsWith('audio/')) return '🎵';
+    if (name.endsWith('.pdf')) return '📕';
+    if (name.endsWith('.doc') || name.endsWith('.docx')) return '📘';
+    if (name.endsWith('.xls') || name.endsWith('.xlsx')) return '📊';
+    if (name.endsWith('.zip') || name.endsWith('.rar') || name.endsWith('.7z')) return '🗜️';
+    if (name.endsWith('.exe') || name.endsWith('.msi')) return '⚙️';
+    if (name.endsWith('.lua')) return '🌙';
+    return '📄';
+}
+function formatSize(bytes) {
+    if (!bytes) return '0 B';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }// кастомизация профиля
 async function openCustomizeModal() {
     if (!currentUser) return alert('Войдите');
@@ -234,8 +258,6 @@ async function openCustomizeModal() {
     document.getElementById('avatarFrameSelect').value = customization.avatarFrame || 'none';
     document.getElementById('customizeModal').classList.add('active');
 }
-
-// Кнопки удаления фона и мини-фона
 document.getElementById('removeProfileBgBtn').onclick = async () => {
     if (!currentUser) return;
     const userSnap = await db.collection('users').doc(currentUser.uid).get();
@@ -258,50 +280,31 @@ document.getElementById('removeMiniBgBtn').onclick = async () => {
     document.getElementById('customizeModal').classList.remove('active');
     if (currentPage === 'profile') renderPage('profile');
 };
-
 document.getElementById('saveCustomizeBtn').onclick = async () => {
     if (!currentUser) return;
     const file = document.getElementById('profileBgInput').files[0];
     const miniFile = document.getElementById('profileMiniBgInput').files[0];
-
     const uploadFile = async (file) => {
         if (!file) return null;
-        const fd = new FormData();
-        fd.append('file', file);
-        fd.append('upload_preset', UPLOAD_PRESET);
-        const endpoint = file.type.startsWith('image/')
-            ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`
-            : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
-        const res = await fetch(endpoint, { method: 'POST', body: fd });
-        const data = await res.json();
+        const fd = new FormData(); fd.append('file', file); fd.append('upload_preset', UPLOAD_PRESET);
+        const endpoint = file.type.startsWith('image/') ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload` : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
+        const res = await fetch(endpoint, { method: 'POST', body: fd }); const data = await res.json();
         return data.secure_url;
     };
-
     let profileBg = await uploadFile(file);
     let profileMiniBg = await uploadFile(miniFile);
-
     const userSnap = await db.collection('users').doc(currentUser.uid).get();
     const existingCustomization = userSnap.data()?.customization || {};
-
     const customization = { ...existingCustomization };
-
     const nickColor = document.getElementById('nickColor').value;
-    if (nickColor !== 'default') customization.nickColor = nickColor;
-    else delete customization.nickColor;
-
+    if (nickColor !== 'default') customization.nickColor = nickColor; else delete customization.nickColor;
     const nickGlow = document.getElementById('nickGlow').value;
-    if (nickGlow !== 'none') customization.nickGlow = nickGlow;
-    else delete customization.nickGlow;
-
+    if (nickGlow !== 'none') customization.nickGlow = nickGlow; else delete customization.nickGlow;
     const avatarFrame = document.getElementById('avatarFrameSelect').value;
-    if (avatarFrame !== 'none') customization.avatarFrame = avatarFrame;
-    else delete customization.avatarFrame;
-
-    if (profileBg !== undefined && profileBg !== null) customization.profileBg = profileBg;
-    if (profileMiniBg !== undefined && profileMiniBg !== null) customization.profileMiniBg = profileMiniBg;
-
+    if (avatarFrame !== 'none') customization.avatarFrame = avatarFrame; else delete customization.avatarFrame;
+    if (profileBg) customization.profileBg = profileBg;
+    if (profileMiniBg) customization.profileMiniBg = profileMiniBg;
     Object.keys(customization).forEach(k => customization[k] === undefined && delete customization[k]);
-
     await db.collection('users').doc(currentUser.uid).set({ customization }, { merge: true });
     localStorage.setItem(`custom_${currentUser.uid}`, JSON.stringify(customization));
     document.getElementById('customizeModal').classList.remove('active');
@@ -395,7 +398,9 @@ async function loadAchievements(uid, currentAchievements) {
         html += `<div class="achievement-card ${unlocked ? '' : 'locked'}"><div class="achievement-icon">${a.icon}</div><div class="achievement-info"><div class="achievement-title">${a.title}</div><div class="achievement-desc">${a.desc}</div></div></div>`;
     });
     container.innerHTML = html;
-}// темы
+}
+
+// темы
 async function loadTopics(term = '') {
     const container = document.getElementById('topicsList'); if (!container) return;
     let q = db.collection('forum_posts').orderBy('createdAt', 'desc').limit(20);
@@ -405,7 +410,7 @@ async function loadTopics(term = '') {
     container.innerHTML = html || '<p>Нет тем</p>';
 }
 function topicCard(id, p) {
-    return `<div class="topic-card" data-post-id="${id}"><div class="topic-title">${escapeHtml(p.title)} ${p.verified ? '✅' : ''}</div><div class="topic-meta"><span>📅 ${p.createdAt?.toDate().toLocaleString() || ''}</span><span>💬 ${p.commentCount || 0}</span><span>❤️ ${p.likes || 0}</span></div><div class="topic-author"><img src="${p.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.authorName)}"> ${escapeHtml(p.authorName)}</div></div>`;
+    return `<div class="topic-card" data-post-id="${id}"><div class="topic-title">${escapeHtml(p.title)} ${p.verified ? '<span class="verified-badge">✅</span>' : ''}</div><div class="topic-meta"><span>📅 ${p.createdAt?.toDate().toLocaleString() || ''}</span><span>💬 ${p.commentCount || 0}</span><span>❤️ ${p.likes || 0}</span></div><div class="topic-author"><img src="${p.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(p.authorName)}" style="cursor:pointer" onclick="event.stopPropagation(); showProfile('${p.authorId}')"> ${escapeHtml(p.authorName)}</div></div>`;
 }
 async function loadPopular() {
     const container = document.getElementById('popularTopics'); const snap = await db.collection('forum_posts').orderBy('likes', 'desc').limit(5).get(); let html = '';
@@ -428,7 +433,7 @@ async function loadUserComments(uid) {
     container.innerHTML = html || '<p>Нет комментариев</p>';
 }
 
-// создание темы (красивый функционал из старой версии)
+// создание темы
 function openNewTopicModal() { uploadedFiles = []; updateFilePreview(); document.getElementById('newTopicModal').classList.add('active'); }
 document.getElementById('closeNewTopicModal').onclick = () => document.getElementById('newTopicModal').classList.remove('active');
 document.getElementById('insertImageBtn').onclick = () => document.getElementById('topicFileInput').click();
@@ -455,8 +460,11 @@ document.getElementById('topicFileInput').onchange = async (e) => {
 function updateFilePreview() {
     const prev = document.getElementById('filePreview'); let html = '';
     uploadedFiles.forEach((f, i) => {
-        if (f.type.startsWith('image/')) html += `<div style="display:inline-block; margin:5px; position:relative"><img src="${f.url}" style="max-width:100px;max-height:100px;border-radius:8px;"><button onclick="removeFile(${i})" style="position:absolute;top:-5px;right:-5px;background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer">✕</button></div>`;
-        else html += `<div style="display:flex;align-items:center;gap:5px;background:rgba(20,20,40,.5);padding:5px;border-radius:8px;margin:5px"><span>📄 ${f.name}</span><button onclick="removeFile(${i})" style="background:red;color:white;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer">✕</button></div>`;
+        if (f.type && f.type.startsWith('image/')) {
+            html += `<div style="display:inline-block; margin:5px; position:relative"><img src="${f.url}" style="max-width:120px; max-height:120px; border-radius:12px; border:2px solid #6a4eff;"><button onclick="removeFile(${i})" style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer;">✕</button></div>`;
+        } else {
+            html += `<div class="file-attachment" style="position:relative;"><div class="file-icon">${getFileIcon(f)}</div><div class="file-info"><a href="${f.url}" target="_blank" class="file-name">${escapeHtml(f.name)}</a><div class="file-meta"><span>${formatSize(f.size)}</span><span>${f.type || 'Файл'}</span></div></div><button onclick="removeFile(${i})" style="position:absolute; top:8px; right:8px; background:#ef4444; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer;">✕</button></div>`;
+        }
     });
     prev.innerHTML = html;
 }
@@ -471,15 +479,16 @@ document.getElementById('createTopicBtn').onclick = async () => {
     if (currentPage === 'home') loadTopics(); showToast('Тема создана!');
 };
 
-// открытие темы
+// открытие темы + клик по аватарке
 document.addEventListener('click', e => { const card = e.target.closest('[data-post-id]'); if (card && (currentPage === 'home' || currentPage === 'profile')) { openTopic(card.dataset.postId); } });
+window.showProfile = async (uid) => { currentProfileUid = uid; currentPage = 'profile'; renderPage('profile'); };
 window.openTopic = async (postId) => {
     const postRef = db.collection('forum_posts').doc(postId); const postSnap = await postRef.get(); const post = postSnap.data();
     const modal = document.getElementById('viewTopicModal'); document.getElementById('viewTopicTitle').textContent = post.title;
-    let html = `<div style="display:flex;gap:15px;margin-bottom:15px"><img src="${post.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(post.authorName)}" style="width:40px;height:40px;border-radius:50%"><div><strong>${escapeHtml(post.authorName)} ${post.authorRole === 'admin' ? '<span class="badge-admin">👑</span>' : post.authorRole === 'moderator' ? '<span class="badge-moderator">🛡️</span>' : ''}</strong><br>${post.createdAt?.toDate().toLocaleString()}</div></div><div>${escapeHtml(post.content)}</div>`;
+    let html = `<div style="display:flex;gap:15px;margin-bottom:15px"><img src="${post.authorAvatar || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(post.authorName)}" style="width:40px;height:40px;border-radius:50%;cursor:pointer" onclick="showProfile('${post.authorId}')"><div><strong>${escapeHtml(post.authorName)} ${post.authorRole === 'admin' ? '<span class="badge-admin">👑</span>' : post.authorRole === 'moderator' ? '<span class="badge-moderator">🛡️</span>' : ''}</strong><br>${post.createdAt?.toDate().toLocaleString()}</div></div><div>${escapeHtml(post.content)}</div>`;
     if (post.files && post.files.length) {
         html += '<div style="margin-top:20px"><h4>📎 Вложения:</h4>';
-        post.files.forEach(f => { if (f.type.startsWith('image/')) html += `<img src="${f.url}" style="max-width:100%;border-radius:12px;margin:5px 0">`; else html += `<div><a href="${f.url}" target="_blank">${f.name}</a></div>`; });
+        post.files.forEach(f => { if (f.type.startsWith('image/')) html += `<img src="${f.url}" style="max-width:100%;border-radius:12px;margin:5px 0">`; else html += `<div class="file-attachment"><div class="file-icon">${getFileIcon(f)}</div><div class="file-info"><a href="${f.url}" target="_blank" class="file-name">${escapeHtml(f.name)}</a><div class="file-meta"><span>${formatSize(f.size)}</span></div></div></div>`; });
         html += '</div>';
     }
     document.getElementById('viewTopicContent').innerHTML = html;
@@ -493,22 +502,47 @@ window.openTopic = async (postId) => {
     for (const c of commSnap.docs) {
         const d = c.data(); const userDoc = await db.collection('users').doc(d.authorId).get(); const userData = userDoc.data() || {};
         const avatar = userData.avatarBase64 || `https://ui-avatars.com/api/?name=${encodeURIComponent(d.authorName)}&background=6a4eff&color=fff`;
-        commHtml += `<div style="display:flex;gap:10px;margin-bottom:15px"><img src="${avatar}" class="comment-avatar"><div><strong>${d.authorName}</strong><br>${d.text}</div></div>`;
+        commHtml += `<div style="display:flex;gap:10px;margin-bottom:15px"><img src="${avatar}" class="comment-avatar" onclick="showProfile('${d.authorId}')"><div><strong>${d.authorName}</strong><br>${d.text}`;
+        if (d.imageUrl) commHtml += `<br><img src="${d.imageUrl}" style="max-width:200px; border-radius:12px; margin-top:5px;">`;
+        commHtml += `</div></div>`;
     }
     document.getElementById('commentsSection').innerHTML = commHtml;
     modal.classList.add('active');
+    // загрузка картинки в комментарий
+    commentImageFile = null;
+    document.getElementById('commentFilePreview').innerHTML = '';
+    document.getElementById('commentInput').value = '';
+    document.getElementById('attachCommentImageBtn').onclick = () => document.getElementById('commentFileInput').click();
+    document.getElementById('commentFileInput').onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            commentImageFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('commentFilePreview').innerHTML = `<img src="${ev.target.result}" style="max-width:80px; max-height:80px; border-radius:8px; border:2px solid #6a4eff;"> <button onclick="commentImageFile=null; document.getElementById('commentFilePreview').innerHTML='';">✕</button>`;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
     document.getElementById('addCommentBtn').onclick = async () => {
-        if (!currentUser) return alert('Войдите'); const text = document.getElementById('commentInput').value.trim(); if (!text) return;
+        if (!currentUser) return alert('Войдите');
+        const text = document.getElementById('commentInput').value.trim();
+        if (!text && !commentImageFile) return;
         const userSnap = await db.collection('users').doc(currentUser.uid).get(); const userData = userSnap.data() || {};
-        await postRef.collection('comments').add({ text, authorId: currentUser.uid, authorName: currentUser.displayName || currentUser.email, authorAvatar: userData.avatarBase64 || '', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        let imageUrl = null;
+        if (commentImageFile) {
+            const fd = new FormData(); fd.append('file', commentImageFile); fd.append('upload_preset', UPLOAD_PRESET);
+            const endpoint = commentImageFile.type.startsWith('image/') ? `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload` : `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/raw/upload`;
+            const res = await fetch(endpoint, { method: 'POST', body: fd }); const data = await res.json();
+            imageUrl = data.secure_url;
+        }
+        await postRef.collection('comments').add({ text, imageUrl, authorId: currentUser.uid, authorName: currentUser.displayName || currentUser.email, authorAvatar: userData.avatarBase64 || '', createdAt: firebase.firestore.FieldValue.serverTimestamp() });
         await postRef.update({ commentCount: firebase.firestore.FieldValue.increment(1) });
         openTopic(postId);
     };
 };
 document.getElementById('closeViewTopicModal').onclick = () => document.getElementById('viewTopicModal').classList.remove('active');
-document.getElementById('viewTopicModal').addEventListener('click', e => { if (e.target === document.getElementById('viewTopicModal')) document.getElementById('viewTopicModal').classList.remove('active'); });
-
-// модерация
+document.getElementById('viewTopicModal').addEventListener('click', e => { if (e.target === document.getElementById('viewTopicModal')) document.getElementById('viewTopicModal').classList.remove('active'); });// модерация
 async function loadModTopics() {
     const container = document.getElementById('modContent'); const snap = await db.collection('forum_posts').orderBy('createdAt', 'desc').get(); let html = '';
     snap.forEach(d => { const p = d.data(); html += `<div class="topic-card"><div class="topic-title">${escapeHtml(p.title)}</div><button onclick="deletePost('${d.id}')">🗑️</button> <button onclick="editPost('${d.id}')">✏️</button> <button onclick="toggleVerified('${d.id}',${!p.verified})">${p.verified ? '✅' : '⬜'}</button></div>`; });
@@ -529,13 +563,18 @@ window.editPost = async (id) => {
 };
 function updateEditFilePreview() {
     const prev = document.getElementById('editFilePreview'); let html = '';
-    uploadedFiles.forEach((f, i) => { if (f.type.startsWith('image/')) html += `<div><img src="${f.url}" style="max-width:100px;max-height:100px"> ${f.name} <button onclick="removeEditFile(${i})">❌</button></div>`; else html += `<div>📄 ${f.name} <button onclick="removeEditFile(${i})">❌</button></div>`; });
+    uploadedFiles.forEach((f, i) => {
+        if (f.type && f.type.startsWith('image/')) {
+            html += `<div style="display:inline-block; margin:5px; position:relative"><img src="${f.url}" style="max-width:120px; max-height:120px; border-radius:12px; border:2px solid #6a4eff;"><button onclick="removeEditFile(${i})" style="position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer;">✕</button></div>`;
+        } else {
+            html += `<div class="file-attachment" style="position:relative;"><div class="file-icon">${getFileIcon(f)}</div><div class="file-info"><a href="${f.url}" target="_blank" class="file-name">${escapeHtml(f.name)}</a><div class="file-meta"><span>${formatSize(f.size)}</span><span>${f.type || 'Файл'}</span></div></div><button onclick="removeEditFile(${i})" style="position:absolute; top:8px; right:8px; background:#ef4444; color:white; border:none; border-radius:50%; width:22px; height:22px; cursor:pointer;">✕</button></div>`;
+        }
+    });
     prev.innerHTML = html;
 }
 window.removeEditFile = (i) => { uploadedFiles.splice(i, 1); updateEditFilePreview(); };
 document.getElementById('editInsertImageBtn').onclick = () => document.getElementById('editFileInput').click();
 document.getElementById('editAttachFileBtn').onclick = () => document.getElementById('editFileInput').click();
-// Исправляем onchange для editFileInput (проверка существования)
 const editFileInput = document.getElementById('editFileInput');
 if (editFileInput) {
     editFileInput.onchange = async (e) => {
